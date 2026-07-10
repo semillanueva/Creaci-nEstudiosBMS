@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Generador de Diseño — BCR & Self</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f1f5f9;min-height:100vh;color:#1e293b}
+header{background:#4338ca;color:white;padding:16px 28px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+header h1{font-size:1.1rem;font-weight:700}
+header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
+/* Selector de modo (pestañas superiores) */
+.modebar{background:#3730a3;display:flex;gap:0;padding:0 28px}
+.modebtn{background:transparent;border:none;color:#c7d2fe;font-family:inherit;font-size:.86rem;font-weight:700;padding:11px 22px;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
+.modebtn:hover{color:#fff;background:rgba(255,255,255,.06)}
+.modebtn.active{color:#fff;border-bottom-color:#a5b4fc;background:rgba(255,255,255,.10)}
+.main{max-width:1160px;margin:0 auto;padding:20px 14px;display:grid;grid-template-columns:330px 1fr;gap:18px}
+.panel{background:white;border-radius:14px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.sec{font-size:.74rem;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:.75rem;font-weight:600;color:#475569;margin-bottom:4px}
+.field input,.field select{width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:.83rem;outline:none;font-family:inherit;background:white;color:#1e293b}
+.field input:focus,.field select:focus{border-color:#6366f1;box-shadow:0 0 0 2px #e0e7ff}
+.field small{font-size:.7rem;color:#94a3b8;margin-top:3px;display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;padding:9px;border-radius:9px;border:none;font-size:.83rem;font-weight:700;cursor:pointer;transition:background .15s;font-family:inherit}
+.btn-primary{background:#4338ca;color:white}.btn-primary:hover{background:#3730a3}
+.btn-green{background:#065f46;color:white}.btn-green:hover{background:#064e3b}
+.btn-green:disabled{background:#94a3b8;cursor:not-allowed}
+.info-badge{padding:8px 12px;border-radius:8px;font-size:.76rem;margin-top:6px;background:#ede9fe;color:#4338ca;border:1px solid #c4b5fd}
+.reminder-box{font-size:.74rem;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 11px;margin-top:8px;line-height:1.5}
+.reminder-box .big{font-size:.82rem;font-weight:800;color:#78350f}
+.reminder-box button{margin-top:6px;background:#4338ca;color:#fff;border:none;border-radius:6px;padding:4px 11px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit}
+.reminder-box button:hover{background:#3730a3}
+.reminder-box .lnk{background:none;color:#4338ca;text-decoration:underline;padding:0;margin:0 0 0 6px;font-size:.72rem}
+.reminder-box .lnk:hover{background:none;color:#3730a3}
+.shared-update{font-size:.74rem;color:#065f46;background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:9px 11px;margin-top:8px;line-height:1.5}
+.shared-update pre{background:#052e16;color:#a7f3d0;border-radius:6px;padding:8px 10px;margin:6px 0;font-size:.68rem;overflow-x:auto;white-space:pre;font-family:Consolas,Menlo,monospace}
+.shared-update button{background:#065f46;color:#fff;border:none;border-radius:6px;padding:4px 11px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit}
+.shared-update button:hover{background:#064e3b}
+.alert{padding:9px 12px;border-radius:8px;font-size:.78rem;margin-bottom:10px}
+.alert-ok{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7}
+.alert-err{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.alert-warn{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.upload-zone{border:2px dashed #c7d2fe;border-radius:10px;padding:13px;text-align:center;cursor:pointer;transition:border-color .15s;margin-bottom:10px;position:relative}
+.upload-zone:hover{border-color:#6366f1;background:#f5f3ff}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone .uicon{font-size:1.3rem;display:block;margin-bottom:3px}
+.upload-zone p{font-size:.77rem;color:#64748b}
+.upload-zone .fname{font-size:.74rem;color:#4338ca;font-weight:600;margin-top:4px}
+.germ-summary{margin-top:8px;border-radius:8px;border:1px solid #e2e8f0;overflow:hidden}
+.germ-summary-hdr{display:grid;grid-template-columns:40px 1fr 70px 70px;background:#1e293b;padding:5px 10px}
+.germ-summary-hdr span{font-size:.66rem;font-weight:700;color:#94a3b8;text-transform:uppercase}
+.germ-summary-list{max-height:170px;overflow-y:auto}
+.germ-row{display:grid;grid-template-columns:40px 1fr 70px 70px;padding:4px 10px;border-bottom:1px solid #f1f5f9;align-items:center}
+.germ-row:last-child{border-bottom:none}
+.germ-row:hover{background:#f8fafc}
+.germ-no{font-size:.68rem;font-weight:700;color:#94a3b8}
+.germ-gid{font-size:.74rem;font-weight:600;color:#1e293b}
+.germ-ent{font-size:.7rem;font-weight:700;color:#0369a1;text-align:center}
+.germ-role-f{font-size:.66rem;font-weight:700;color:#9d174d;background:#fce7f3;padding:2px 6px;border-radius:4px;text-align:center}
+.germ-role-m{font-size:.66rem;font-weight:700;color:#1e3a8a;background:#dbeafe;padding:2px 6px;border-radius:4px;text-align:center}
+.germ-summary-hdr.self,.germ-row.self{grid-template-columns:40px 1fr 80px}
+.preview-wrap{display:flex;flex-direction:column;gap:14px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tab{padding:5px 14px;border-radius:7px;border:1px solid #e2e8f0;font-size:.78rem;font-weight:600;cursor:pointer;background:white;color:#475569}
+.tab.active{background:#4338ca;color:white;border-color:#4338ca}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat{background:#f8fafc;border-radius:9px;padding:10px;text-align:center;border:1px solid #e2e8f0}
+.stat .num{font-size:1.3rem;font-weight:800;color:#1e293b}
+.stat .lbl{font-size:.64rem;color:#64748b;margin-top:1px}
+.map-scroll{overflow-x:auto}
+.field-map{border-collapse:collapse;font-size:.7rem}
+.field-map th{background:#1e293b;color:white;padding:4px 7px;text-align:center;font-weight:600;white-space:nowrap;font-size:.66rem}
+.field-map th.dir{background:#334155;font-size:.62rem;font-weight:400;color:#94a3b8;padding:2px 7px}
+.field-map td{padding:3px 5px;text-align:center;min-width:34px;border:1px solid #e2e8f0;font-size:.66rem;font-weight:700}
+.field-map td.plot-cell{padding:3px 4px;min-width:70px;line-height:1.25;vertical-align:middle}
+.mc-plot{font-size:.66rem;font-weight:800}
+.mc-gid{font-size:.6rem;font-weight:600;opacity:.85}
+.mc-role{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.field-map td.surco-lbl{background:#f8fafc;font-weight:700;color:#475569;min-width:34px}
+.cell-f{background:#fce7f3;color:#9d174d}
+.cell-m{background:#dbeafe;color:#1e3a8a}
+.cell-s{background:#dcfce7;color:#166534}
+.cell-e{background:#f8fafc;color:#e2e8f0}
+.tbl-scroll{overflow:auto;max-height:440px}
+.dtable{border-collapse:collapse;font-size:.73rem;width:100%}
+.dtable th{background:#1e293b;color:white;padding:6px 9px;text-align:center;position:sticky;top:0;font-size:.7rem;white-space:nowrap}
+.dtable td{padding:4px 9px;text-align:center;border-bottom:1px solid #f1f5f9}
+.dtable tr:hover td{background:#f8fafc}
+.rf{color:#9d174d;font-weight:700}.rm{color:#1e3a8a;font-weight:700}
+.empty{text-align:center;padding:50px 20px;color:#94a3b8}
+.empty .icon{font-size:2.5rem;margin-bottom:8px}
+@media(max-width:800px){.main{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌽 Generador de Diseño — Vivero</h1>
+  <p>Backcross (F,F,F,M,M · serpentina con volteo por rol) &nbsp;·&nbsp; Estudios Self (serpentina simple, sin rol) &nbsp;·&nbsp; Exporta XLSX para BMS</p>
+</header>
+
+<!-- SELECTOR DE MODO -->
+<div class="modebar">
+  <button class="modebtn active" id="mode-bcr"  onclick="setMode('bcr')">Vivero BCR (Backcross)</button>
+  <button class="modebtn"        id="mode-self" onclick="setMode('self')">Estudios Self</button>
+</div>
+
+<!-- ══════════════════════════ MODO BCR (BACKCROSS) ══════════════════════════ -->
+<div class="main" id="mainBCR">
+  <!-- PANEL IZQUIERDO -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <div class="panel">
+      <div class="sec">1 · Archivo original (GID + rol)</div>
+      <div class="upload-zone">
+        <input type="file" accept=".xlsx,.xls" onchange="loadGermFile(this)"/>
+        <span class="uicon">📂</span>
+        <p>Cargar listado oficial (ej. 06_BC_F1…)</p>
+        <p style="font-size:.68rem;color:#94a3b8;margin-top:3px">GID y rol Hembra/Macho salen de este archivo, en su orden</p>
+        <div class="fname" id="fnameGerm"></div>
+      </div>
+      <div id="alertGerm"></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec">2 · Importlist — ENTRY_NO</div>
+      <div style="font-size:.76rem;color:#065f46;background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:8px 11px;margin-bottom:10px">
+        &#10003; <b>Automático:</b> se toman los GIDs únicos en orden de aparición y se numeran 1 a N. No necesitas cargar nada.
+      </div>
+      <button class="btn btn-green" id="btnExpImp" onclick="exportarImportlist()" disabled>⬇ Exportar Importlist</button>
+      <div style="text-align:center;margin:9px 0 3px;font-size:.7rem;color:#94a3b8">— o cargar uno propio (opcional) —</div>
+      <div class="upload-zone" style="padding:9px">
+        <input type="file" accept=".xlsx,.xls" onchange="loadImportFile(this)"/>
+        <span class="uicon" style="font-size:1.1rem">🔗</span>
+        <p style="font-size:.72rem">Cargar importlist para sobrescribir los ENTRY_NO</p>
+        <div class="fname" id="fnameImp"></div>
+      </div>
+      <div id="alertImp"></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec">3 · Parámetros del vivero</div>
+      <div class="field">
+        <label>Código del vivero</label>
+        <input id="pNombre" type="text" value="BCR_2026A"/>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Ubicación del campo</label><input id="pFieldLoc" type="text" value="" placeholder="ej. SN El Ovejero"/><small>encabezado del mapa</small></div>
+        <div class="field"><label>Nombre del bloque</label><input id="pBlockName" type="text" value="" placeholder="ej. BLOCK for 26102"/><small>encabezado del mapa</small></div>
+      </div>
+      <div class="field">
+        <label>Surcos por faja (capacidad de filas del bloque)</label>
+        <input id="pRowsPerFaja" type="number" value="15" min="5" max="500" oninput="updateInfoMB()"/>
+        <small>Cuántos plots físicos entran a lo largo de una faja (ej. 15). Las fajas se calculan solas.</small>
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>Surcos ♀ Female</label>
+          <input id="pF" type="number" value="3" min="1" max="20" oninput="onPatternChange()"/>
+          <small>por minibloque</small>
+        </div>
+        <div class="field">
+          <label>Surcos ♂ Male</label>
+          <input id="pM" type="number" value="2" min="1" max="20" oninput="onPatternChange()"/>
+          <small>por minibloque</small>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>Prefijo PLOT_CODE</label>
+          <input id="pPrefix" type="text" value="G" maxlength="10" oninput="updatePlotPreview()"/>
+          <small>ej. G, A5, BCR</small>
+        </div>
+        <div class="field">
+          <label>Número inicial (siguiente ciento)</label>
+          <input id="pPlotStart" type="number" value="2801" min="0" oninput="updatePlotPreview()"/>
+          <small>si el último fue G2750 → 2801</small>
+        </div>
+      </div>
+      <div id="plotPreview" style="font-size:.74rem;color:#4338ca;background:#eef2ff;border:1px solid #c7d2fe;border-radius:7px;padding:6px 10px;margin-bottom:4px">
+        Vista previa: <b id="plotPreviewTxt">G2801, G2802, G2803…</b>
+      </div>
+      <div id="reminderBCR" class="reminder-box"></div>
+      <div class="field" style="margin-top:8px;margin-bottom:0">
+        <label>Origen compartido (JSON / JSONBin)</label>
+        <input id="pSharedUrl" type="text" onchange="onSharedUrlChange(this.value)" placeholder="ultimo_plot.json  ó  https://api.jsonbin.io/v3/b/XXXX/latest"/>
+        <small>Se lee al abrir. Puede ser <b>ultimo_plot.json</b> (GitHub Pages) o la URL de lectura de tu <b>JSONBin</b>.</small>
+      </div>
+      <div class="field" style="margin-top:8px;margin-bottom:0">
+        <label>Clave JSONBin para actualizar (opcional)</label>
+        <input id="pSharedKey" type="password" onchange="onSharedKeyChange(this.value)" placeholder="X-Master-Key (solo si vas a escribir)"/>
+        <small>Se guarda solo en <b>este navegador</b>, nunca en el repo. Con clave, al exportar actualiza el número solo.</small>
+      </div>
+      <div id="infoMB" class="info-badge"></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec">4 · Generar</div>
+      <div id="alertGen"></div>
+      <button class="btn btn-primary" onclick="generarDiseno()">Generar diseño</button>
+      <button class="btn btn-green" id="btnExp" onclick="exportarXLSX()" disabled style="margin-top:7px">⬇ Exportar XLSX</button>
+      <div id="sharedUpdateBCR"></div>
+    </div>
+
+    <div class="panel" id="germSummaryPanel" style="display:none">
+      <div class="sec">GIDs cargados</div>
+      <div class="germ-summary">
+        <div class="germ-summary-hdr"><span>#</span><span>GID</span><span>Entry</span><span>Rol</span></div>
+        <div class="germ-summary-list" id="germSummaryList"></div>
+      </div>
+      <div style="font-size:.7rem;color:#94a3b8;margin-top:5px;text-align:right">Solo lectura · GIDs únicos en orden de aparición</div>
+    </div>
+  </div>
+
+  <!-- PANEL DERECHO -->
+  <div class="preview-wrap">
+    <div class="panel" style="flex:1">
+      <div id="statsArea" style="display:none">
+        <div class="stats-grid">
+          <div class="stat"><div class="num" id="sTot">—</div><div class="lbl">Plots totales</div></div>
+          <div class="stat"><div class="num" id="sMB">—</div><div class="lbl">Minibloques</div></div>
+          <div class="stat"><div class="num" id="sFajas">—</div><div class="lbl">Fajas (COL)</div></div>
+          <div class="stat"><div class="num" id="sSurcos">—</div><div class="lbl">Surcos usados (ROW)</div></div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('mapa')">Mapa de campo</button>
+        <button class="tab" onclick="showTab('tabla')">Diseño</button>
+        <button class="tab" onclick="showTab('mb')">Minibloques</button>
+      </div>
+      <div id="tabMapa"><div class="empty"><div class="icon">🗺️</div><p>Carga el archivo y presiona "Generar diseño"</p></div></div>
+      <div id="tabTabla" style="display:none"><div class="empty"><div class="icon">📋</div><p>El diseño aparecerá aquí</p></div></div>
+      <div id="tabMb"    style="display:none"><div class="empty"><div class="icon">🧩</div><p>Los minibloques aparecerán aquí</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ MODO ESTUDIOS SELF ══════════════════════════ -->
+<div class="main" id="mainSelf" style="display:none">
+  <!-- PANEL IZQUIERDO -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <div class="panel">
+      <div class="sec">1 · Plan inicial (GID)</div>
+      <div class="upload-zone">
+        <input type="file" accept=".xlsx,.xls" onchange="selfLoadPlanFile(this)"/>
+        <span class="uicon">📂</span>
+        <p>Cargar plan del Self (ej. Entry_list…)</p>
+        <p style="font-size:.68rem;color:#94a3b8;margin-top:3px">El GID se copia tal cual el plan, en su orden (repetidos incluidos)</p>
+        <div class="fname" id="selfFnamePlan"></div>
+      </div>
+      <div id="selfAlertPlan"></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec">2 · Importlist — ENTRY_NO</div>
+      <div style="font-size:.76rem;color:#065f46;background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:8px 11px;margin-bottom:10px">
+        &#10003; <b>Automático:</b> GIDs únicos en orden de aparición numerados 1 a N. El ENTRY_NO de cada plot se busca (BUSCARV) por su GID.
+      </div>
+      <button class="btn btn-green" id="selfBtnExpImp" onclick="selfExportarImportlist()" disabled>⬇ Exportar Importlist</button>
+      <div style="text-align:center;margin:9px 0 3px;font-size:.7rem;color:#94a3b8">— o cargar uno propio (opcional) —</div>
+      <div class="upload-zone" style="padding:9px">
+        <input type="file" accept=".xlsx,.xls" onchange="selfLoadImportFile(this)"/>
+        <span class="uicon" style="font-size:1.1rem">🔗</span>
+        <p style="font-size:.72rem">Cargar importlist para sobrescribir los ENTRY_NO</p>
+        <div class="fname" id="selfFnameImp"></div>
+      </div>
+      <div id="selfAlertImp"></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec">3 · Parámetros del vivero</div>
+      <div class="field">
+        <label>Código del vivero</label>
+        <input id="selfNombre" type="text" value="SELF_2026A"/>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Ubicación del campo</label><input id="selfFieldLoc" type="text" value="" placeholder="ej. SN El Ovejero"/><small>encabezado del mapa</small></div>
+        <div class="field"><label>Nombre del bloque</label><input id="selfBlockName" type="text" value="" placeholder="ej. BLOCK for 26102"/><small>encabezado del mapa</small></div>
+      </div>
+      <div class="field">
+        <label>Surcos por faja</label>
+        <input id="selfRowsPerFaja" type="number" value="26" min="2" max="500" oninput="selfUpdateInfo()"/>
+        <small>Cuántos plots entran a lo largo de una faja (ej. 26). Las fajas se calculan solas.</small>
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>Prefijo PLOT_CODE</label>
+          <input id="selfPrefix" type="text" value="G" maxlength="10" oninput="selfUpdatePlotPreview()"/>
+          <small>ej. G, A5</small>
+        </div>
+        <div class="field">
+          <label>Número inicial</label>
+          <input id="selfPlotStart" type="number" value="3000" min="0" oninput="selfUpdatePlotPreview()"/>
+          <small>ej. si sigue de G2999 → 3000</small>
+        </div>
+      </div>
+      <div id="selfPlotPreview" style="font-size:.74rem;color:#4338ca;background:#eef2ff;border:1px solid #c7d2fe;border-radius:7px;padding:6px 10px;margin-bottom:4px">
+        Vista previa: <b id="selfPlotPreviewTxt">G3000, G3001, G3002…</b>
+      </div>
+      <div id="reminderSelf" class="reminder-box"></div>
+      <div class="field" style="margin-top:8px;margin-bottom:0">
+        <label>Origen compartido (JSON / JSONBin)</label>
+        <input id="selfSharedUrl" type="text" onchange="onSharedUrlChange(this.value)" placeholder="ultimo_plot.json  ó  https://api.jsonbin.io/v3/b/XXXX/latest"/>
+        <small>Se lee al abrir. Puede ser <b>ultimo_plot.json</b> (GitHub Pages) o la URL de lectura de tu <b>JSONBin</b>.</small>
+      </div>
+      <div class="field" style="margin-top:8px;margin-bottom:0">
+        <label>Clave JSONBin para actualizar (opcional)</label>
+        <input id="selfSharedKey" type="password" onchange="onSharedKeyChange(this.value)" placeholder="X-Master-Key (solo si vas a escribir)"/>
+        <small>Se guarda solo en <b>este navegador</b>, nunca en el repo. Con clave, al exportar actualiza el número solo.</small>
+      </div>
+      <div id="selfInfo" class="info-badge"></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec">4 · Generar</div>
+      <div id="selfAlertGen"></div>
+      <button class="btn btn-primary" onclick="selfGenerar()">Generar diseño</button>
+      <button class="btn btn-green" id="selfBtnExp" onclick="selfExportarXLSX()" disabled style="margin-top:7px">⬇ Exportar XLSX</button>
+      <div id="sharedUpdateSelf"></div>
+    </div>
+
+    <div class="panel" id="selfSummaryPanel" style="display:none">
+      <div class="sec">GIDs cargados</div>
+      <div class="germ-summary">
+        <div class="germ-summary-hdr self"><span>#</span><span>GID</span><span>Entry</span></div>
+        <div class="germ-summary-list" id="selfSummaryList"></div>
+      </div>
+      <div style="font-size:.7rem;color:#94a3b8;margin-top:5px;text-align:right">Solo lectura · GIDs únicos en orden de aparición</div>
+    </div>
+  </div>
+
+  <!-- PANEL DERECHO -->
+  <div class="preview-wrap">
+    <div class="panel" style="flex:1">
+      <div id="selfStatsArea" style="display:none">
+        <div class="stats-grid">
+          <div class="stat"><div class="num" id="selfSTot">—</div><div class="lbl">Plots totales</div></div>
+          <div class="stat"><div class="num" id="selfSFajas">—</div><div class="lbl">Fajas (COL)</div></div>
+          <div class="stat"><div class="num" id="selfSSurcos">—</div><div class="lbl">Surcos por faja (ROW)</div></div>
+          <div class="stat"><div class="num" id="selfSUniq">—</div><div class="lbl">GIDs únicos</div></div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="selfShowTab('mapa')">Mapa de campo</button>
+        <button class="tab" onclick="selfShowTab('tabla')">Diseño</button>
+      </div>
+      <div id="selfTabMapa"><div class="empty"><div class="icon">🗺️</div><p>Carga el plan y presiona "Generar diseño"</p></div></div>
+      <div id="selfTabTabla" style="display:none"><div class="empty"><div class="icon">📋</div><p>El diseño aparecerá aquí</p></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════ SELECTOR DE MODO ═══════════════════════════ */
+function setMode(m){
+  var bcr = m==='bcr';
+  ge('mainBCR').style.display  = bcr?'grid':'none';
+  ge('mainSelf').style.display = bcr?'none':'grid';
+  ge('mode-bcr').classList.toggle('active', bcr);
+  ge('mode-self').classList.toggle('active', !bcr);
+}
+
+/* ═════════════════════ HELPERS COMPARTIDOS ═════════════════════ */
+function ge(id){return document.getElementById(id);}
+function gv(id){var e=ge(id);return e?e.value:'';}
+function showAlert(id,msg,type){var e=ge(id);e.innerHTML=msg?'<div class="alert alert-'+type+'">'+msg+'</div>':'';}
+function readWB(file,cb){
+  var r=new FileReader();
+  r.onload=function(e){ try{cb(XLSX.read(e.target.result,{type:'binary'}));}catch(err){alert('No se pudo leer: '+err.message);} };
+  r.readAsBinaryString(file);
+}
+function findSheetWithGID(wb){
+  for(var i=0;i<wb.SheetNames.length;i++){
+    var d=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]],{defval:''});
+    if(d.length && keyOf(d[0],['gid'])) return d;
+  }
+  return null;
+}
+function keyOf(row,names){
+  var keys=Object.keys(row);
+  for(var n=0;n<names.length;n++){
+    var m=keys.find(function(k){return k.trim().toLowerCase()===names[n];});
+    if(m) return m;
+  }
+  return null;
+}
+/* Detección flexible de GID incluyendo encabezados tipo "GID\n(siembra)" */
+function gidKeyOf(row){
+  var direct=keyOf(row,['gid']);
+  if(direct) return direct;
+  var keys=Object.keys(row);
+  return keys.find(function(k){return k.trim().toLowerCase().replace(/\s+/g,'').indexOf('gid')===0;})||null;
+}
+
+/* ═══════════ RECORDATORIO: último PLOT_CODE (compartido Self+BCR vía GitHub) ═══════════ */
+// Regla del vivero: el próximo empieza en la SIGUIENTE CENTENA + 1
+//   termina en 555 → 601 · termina en 720 → 801 · termina en 3355 → 3401
+// El contador es ÚNICO y compartido: da igual si el último fue Self o BCR.
+function nextHundred(n){ n=parseInt(n)||0; return Math.floor(n/100)*100+101; }
+
+var LASTPLOT_KEY='genDiseno_lastPlot';       // respaldo local por navegador
+var SHAREDURL_KEY='genDiseno_sharedUrl';     // URL del JSON compartido
+var SHAREDKEY_KEY='genDiseno_sharedKey';     // X-Master-Key de JSONBin (solo este navegador)
+var _lastPlotMem=null;
+var _shared=null;                            // último plot leído del repo/bin
+var _sharedErr='';
+var _sharedLoading=false;
+
+function isJsonBin(url){ return /jsonbin\.io/i.test(url||''); }
+
+function loadLastPlot(){
+  try{ var s=localStorage.getItem(LASTPLOT_KEY); if(s) return JSON.parse(s); }catch(e){}
+  return _lastPlotMem;
+}
+function saveLastPlot(prefix,lastNum,nombre){
+  var obj={prefix:prefix,lastNum:lastNum,nombre:nombre,fecha:new Date().toLocaleDateString()};
+  _lastPlotMem=obj;
+  try{ localStorage.setItem(LASTPLOT_KEY,JSON.stringify(obj)); }catch(e){}
+  renderReminder();
+}
+
+// ── Origen compartido (GitHub Pages / JSONBin) ──
+// URL de lectura por defecto (Bin del equipo en JSONBin — NO es secreto, solo el identificador)
+var DEFAULT_SHARED_URL='https://api.jsonbin.io/v3/b/6a5170eeda38895dfe4d587a/latest';
+function getSharedUrl(){
+  var v=''; try{ v=localStorage.getItem(SHAREDURL_KEY)||''; }catch(e){}
+  return v||DEFAULT_SHARED_URL;
+}
+function getSharedKey(){
+  var v=''; try{ v=localStorage.getItem(SHAREDKEY_KEY)||''; }catch(e){}
+  return v;
+}
+function initSharedUrlInputs(){
+  var u=getSharedUrl();
+  if(ge('pSharedUrl')) ge('pSharedUrl').value=u;
+  if(ge('selfSharedUrl')) ge('selfSharedUrl').value=u;
+  var k=getSharedKey();
+  if(ge('pSharedKey')) ge('pSharedKey').value=k;
+  if(ge('selfSharedKey')) ge('selfSharedKey').value=k;
+}
+function onSharedUrlChange(val){
+  val=(val||'').trim();
+  try{ localStorage.setItem(SHAREDURL_KEY,val); }catch(e){}
+  if(ge('pSharedUrl')) ge('pSharedUrl').value=val;
+  if(ge('selfSharedUrl')) ge('selfSharedUrl').value=val;
+  fetchShared();
+}
+function onSharedKeyChange(val){
+  val=(val||'').trim();
+  try{ localStorage.setItem(SHAREDKEY_KEY,val); }catch(e){}
+  if(ge('pSharedKey')) ge('pSharedKey').value=val;
+  if(ge('selfSharedKey')) ge('selfSharedKey').value=val;
+  fetchShared();
+}
+function normalizeShared(j){
+  if(j && j.record) j=j.record;             // JSONBin envuelve en {record, metadata}
+  var num=parseInt(j.ultimo_numero);
+  if(isNaN(num) && j.ultimo_plot_code){ var m=String(j.ultimo_plot_code).match(/(\d+)\s*$/); if(m) num=+m[1]; }
+  return {prefix:j.prefix||'', num:num, vivero:j.vivero||j.nombre||'', tipo:j.tipo||'', fecha:j.fecha||''};
+}
+function fetchShared(){
+  var url=getSharedUrl();
+  _sharedErr=''; _shared=null;
+  if(!url){ renderReminder(); return; }
+  _sharedLoading=true; renderReminder();
+  var headers={}, key=getSharedKey();
+  if(isJsonBin(url) && key) headers['X-Master-Key']=key;   // bins privados
+  var u=url+(url.indexOf('?')>=0?'&':'?')+'t='+Date.now();  // evita caché
+  fetch(u,{cache:'no-store',headers:headers})
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(j){ _shared=normalizeShared(j); _sharedLoading=false; renderReminder(); })
+    .catch(function(e){ _sharedErr=e.message; _sharedLoading=false; renderReminder(); });
+}
+
+function reminderHTML(targetInputId){
+  if(_sharedLoading) return '⏳ Leyendo el último PLOT_CODE compartido…';
+  // 1) Fuente compartida (GitHub)
+  if(_shared && !isNaN(_shared.num)){
+    var next=nextHundred(_shared.num);
+    var info=(_shared.vivero?_shared.vivero:'—')+(_shared.tipo?' ('+_shared.tipo+')':'')+(_shared.fecha?' · '+_shared.fecha:'');
+    return '🌐 <b>Compartido (equipo) — contador único Self + BCR</b>'+
+      '<br>Último vivero: '+info+
+      '<br>Último PLOT_CODE usado: <span class="big">'+(_shared.prefix||'')+_shared.num+'</span>'+
+      '<br>Próximo inicio sugerido: <span class="big">'+next+'</span>'+
+      '<br><button onclick="usarSiguiente(\''+targetInputId+'\','+next+')">Usar '+next+'</button>'+
+      '<button class="lnk" onclick="fetchShared()">🔄 recargar</button>';
+  }
+  // 2) Si falló la lectura compartida, avisar + respaldo local
+  var lp=loadLastPlot(), out='';
+  if(_sharedErr){
+    out+='⚠️ No se pudo leer el JSON compartido ('+_sharedErr+'). '+
+         '<button class="lnk" onclick="fetchShared()">reintentar</button><br>';
+  }
+  if(lp){
+    var next2=nextHundred(lp.lastNum);
+    out+='📌 <b>Registro local</b> (solo este navegador): '+(lp.nombre||'—')+' <span style="opacity:.7">('+lp.fecha+')</span>'+
+      '<br>Último PLOT_CODE: <span class="big">'+lp.prefix+lp.lastNum+'</span> · próximo sugerido: <span class="big">'+next2+'</span>'+
+      '<br><button onclick="usarSiguiente(\''+targetInputId+'\','+next2+')">Usar '+next2+'</button>';
+  } else if(!_sharedErr){
+    out+='📌 <b>Sin registro todavía.</b> Al exportar te daré el JSON para actualizar el archivo compartido.';
+  }
+  return out;
+}
+function renderReminder(){
+  var b=ge('reminderBCR');  if(b) b.innerHTML=reminderHTML('pPlotStart');
+  var s=ge('reminderSelf'); if(s) s.innerHTML=reminderHTML('selfPlotStart');
+}
+function usarSiguiente(inputId,val){
+  var el=ge(inputId); if(!el) return;
+  el.value=val;
+  if(inputId==='pPlotStart') updatePlotPreview(); else selfUpdatePlotPreview();
+}
+
+// ── Al exportar: escribe en JSONBin (si hay clave) o entrega el JSON para commit ──
+function copyEl(elId,btn){
+  var el=ge(elId); if(!el) return;
+  var txt=el.textContent;
+  function done(){ if(btn){var t=btn.textContent; btn.textContent='¡Copiado!'; setTimeout(function(){btn.textContent=t;},1500);} }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(function(){fallback();});
+  } else fallback();
+  function fallback(){ var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}document.body.removeChild(ta); }
+}
+function buildSharedObj(prefix,lastNum,nombre,tipo){
+  return {prefix:prefix, ultimo_plot_code:prefix+lastNum, ultimo_numero:lastNum,
+          vivero:(nombre||'').replace(/"/g,''), tipo:tipo, fecha:new Date().toISOString().slice(0,10)};
+}
+function jsonBinWriteUrl(readUrl){
+  return readUrl.split('?')[0].replace(/\/latest\/?$/,'');   // .../b/{id}/latest -> .../b/{id}
+}
+function showSharedUpdate(mode,prefix,lastNum,nombre,tipo){
+  var obj=buildSharedObj(prefix,lastNum,nombre,tipo);
+  var cont=ge('sharedUpdate'+mode); if(!cont) return;
+  var url=getSharedUrl(), key=getSharedKey();
+  var next=nextHundred(lastNum);
+
+  if(isJsonBin(url) && key){
+    // Actualización automática en JSONBin
+    cont.innerHTML='<div class="shared-update">⏳ Actualizando el número compartido en JSONBin…</div>';
+    fetch(jsonBinWriteUrl(url),{method:'PUT',
+        headers:{'Content-Type':'application/json','X-Master-Key':key},
+        body:JSON.stringify(obj)})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(){
+        _shared=normalizeShared(obj); renderReminder();
+        cont.innerHTML='<div class="shared-update">✅ <b>Número compartido actualizado en JSONBin.</b>'+
+          '<br>Último PLOT_CODE: <b>'+prefix+lastNum+'</b> · el próximo vivero empezará en <b>'+next+'</b>. Todo el equipo lo verá al abrir.</div>';
+      })
+      .catch(function(e){
+        cont.innerHTML='<div class="shared-update">⚠️ No se pudo actualizar JSONBin automáticamente ('+e.message+').'+
+          '<br>Pega este contenido a mano en tu bin:'+
+          '<pre id="jsonOut'+mode+'">'+jsonPretty(obj)+'</pre>'+
+          '<button onclick="copyEl(\'jsonOut'+mode+'\',this)">Copiar JSON</button></div>';
+      });
+    return;
+  }
+
+  // Sin clave / no JSONBin: entregar JSON para pegar y commitear
+  var destino = isJsonBin(url) ? 'tu bin de JSONBin (o pega la clave arriba para que se actualice solo)' : 'el archivo <code>ultimo_plot.json</code> del repo y haz commit';
+  cont.innerHTML='<div class="shared-update">📤 <b>Actualiza el número compartido</b>'+
+    '<br>Pega esto en '+destino+' (así el equipo verá que el próximo empieza en <b>'+next+'</b>):'+
+    '<pre id="jsonOut'+mode+'">'+jsonPretty(obj)+'</pre>'+
+    '<button onclick="copyEl(\'jsonOut'+mode+'\',this)">Copiar JSON</button></div>';
+}
+function jsonPretty(o){
+  return '{\n'+
+    '  "prefix": "'+o.prefix+'",\n'+
+    '  "ultimo_plot_code": "'+o.ultimo_plot_code+'",\n'+
+    '  "ultimo_numero": '+o.ultimo_numero+',\n'+
+    '  "vivero": "'+o.vivero+'",\n'+
+    '  "tipo": "'+o.tipo+'",\n'+
+    '  "fecha": "'+o.fecha+'"\n'+
+    '}';
+}
+
+/* ═══════════ EXPORTACIÓN CON FORMATO (ExcelJS): colores + encabezado BMS + impresión ═══════════ */
+// Paleta (coincide con el mapa en pantalla)
+var STYLE={
+  dark:'FF1E293B', headerTxt:'FFFFFFFF',
+  femFill:'FFFCE7F3', femTxt:'FF9D174D',
+  maleFill:'FFDBEAFE', maleTxt:'FF1E3A8A',
+  selfFill:'FFDCFCE7', selfTxt:'FF166534',
+  fajaFill:'FFF1F5F9', fajaTxt:'FF334155',
+  labelFill:'FFEEF2FF', labelTxt:'FF3730A3',
+  border:'FFCBD5E1'
+};
+function colLetter(n){var s='';while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
+function thinBorder(){var b={style:'thin',color:{argb:STYLE.border}};return {top:b,left:b,bottom:b,right:b};}
+function downloadBlob(buf,filename){
+  var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},1500);
+}
+
+// Hoja "Diseño" con encabezado oscuro, filtro y congelado
+function addDisenoSheet(wb,cols,rows,widths){
+  var ws=wb.addWorksheet('Diseño',{views:[{state:'frozen',ySplit:1}]});
+  ws.addRow(cols);
+  rows.forEach(function(r){ws.addRow(cols.map(function(c){return r[c];}));});
+  cols.forEach(function(_,i){ws.getColumn(i+1).width=widths[i];});
+  var hr=ws.getRow(1);
+  hr.eachCell(function(cell){
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};
+    cell.font={bold:true,color:{argb:STYLE.headerTxt},size:10};
+    cell.alignment={horizontal:'center',vertical:'middle'};
+    cell.border=thinBorder();
+  });
+  ws.autoFilter={from:{row:1,column:1},to:{row:1,column:cols.length}};
+  ws.pageSetup={orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:0.4,right:0.4,top:0.5,bottom:0.5,header:0.2,footer:0.2}};
+  return ws;
+}
+
+// ── Importlist estilo BMS: hoja Observation + hoja Entry Details (siempre) ──
+function entryDetailsRows(){
+  return [
+    ['VARIABLE','ALIAS','DESCRIPTION','PROPERTY','SCALE','METHOD','DATA TYPE','EXPECTED VALUES','IS OBSOLETE?'],
+    ['ENTRY_CODE','','Germplasm ID - Assigned (Code)','Germplasm entry','Code of ENTRY_CODE','Assigned','T','','No'],
+    ['ENTRY_NO','','Germplasm entry - enumerated (number)','Germplasm entry','Number','Enumerated','N','','No'],
+    ['ENTRY_SOURCE','','Entry Source','Seed source','Text','Assigned','T','','No'],
+    ['ENTRY_TYPE','','Entry type (test/check)- assigned (type)','Entry type','Type of ENTRY_TYPE','Assigned','C','T;C;X;D;S;R1;R2;R3','No']
+  ];
+}
+function styleHeaderRow(ws,rowIdx){
+  ws.getRow(rowIdx).eachCell(function(cell){
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};
+    cell.font={bold:true,color:{argb:STYLE.headerTxt},size:10};
+    cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+    cell.border=thinBorder();
+  });
+}
+// entries: [{gid, entry}]
+function buildImportlistWorkbook(entries,nombre){
+  var wb=new ExcelJS.Workbook(); wb.creator='Generador de Diseño'; wb.created=new Date();
+  // Hoja Observation (mismo formato que el importlist de BMS)
+  var ws=wb.addWorksheet('Observation',{views:[{state:'frozen',ySplit:1}]});
+  ws.addRow(['ENTRY_NO','GID','GUID','DESIGNATION','ENTRY_CODE']);
+  entries.forEach(function(e){ ws.addRow([e.entry,e.gid,'','','']); });
+  [10,10,36,22,14].forEach(function(w,i){ws.getColumn(i+1).width=w;});
+  styleHeaderRow(ws,1);
+  ws.autoFilter={from:{row:1,column:1},to:{row:1,column:5}};
+  ws.pageSetup={orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0};
+  // Hoja Entry Details (definiciones de variables) — siempre incluida
+  var wd=wb.addWorksheet('Entry Details');
+  entryDetailsRows().forEach(function(r){ wd.addRow(r); });
+  [14,10,42,18,22,14,11,26,13].forEach(function(w,i){wd.getColumn(i+1).width=w;});
+  styleHeaderRow(wd,1);
+  wd.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0};
+  return wb;
+}
+
+// Descarga varios workbooks como archivos individuales (secuencial, con separación)
+function downloadWorkbooks(list){
+  var i=0;
+  (function next(){
+    if(i>=list.length) return;
+    var item=list[i++];
+    item.wb.xlsx.writeBuffer().then(function(buf){
+      downloadBlob(buf,item.filename);
+      setTimeout(next,600);
+    }).catch(function(err){alert('Error al exportar '+item.filename+': '+err.message);});
+  })();
+}
+
+// Hoja "GermplasmList"
+function addGermplasmSheet(wb,rows){
+  var ws=wb.addWorksheet('GermplasmList',{views:[{state:'frozen',ySplit:1}]});
+  ws.addRow(['ENTRY_NO','GID','GUID','DESIGNATION']);
+  rows.forEach(function(r){ws.addRow(r);});
+  [10,10,36,22].forEach(function(w,i){ws.getColumn(i+1).width=w;});
+  ws.getRow(1).eachCell(function(cell){
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};
+    cell.font={bold:true,color:{argb:STYLE.headerTxt},size:10};
+    cell.alignment={horizontal:'center',vertical:'middle'};
+    cell.border=thinBorder();
+  });
+  ws.pageSetup={orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0};
+  return ws;
+}
+
+// Hoja "Mapa de Campo": encabezado tipo BMS + rejilla coloreada + listo para imprimir
+// opts: {nombre, loc, block, nEntries, nPlots, R, nFajas, isSelf}
+function addMapaSheet(wb,grid,opts){
+  var ws=wb.addWorksheet('Mapa de Campo');
+  var R=opts.R, maxCol=R, nFajas=opts.nFajas;
+  var totCols=maxCol+1;                       // col A (faja) + surcos
+  var lastL=colLetter(totCols);
+
+  function put(r,c,v){var cell=ws.getCell(r,c);cell.value=v;return cell;}
+  function styleLabel(cell){cell.font={bold:true,color:{argb:STYLE.labelTxt},size:9};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.labelFill}};cell.alignment={vertical:'middle',wrapText:true};cell.border=thinBorder();}
+  function styleVal(cell){cell.font={size:9};cell.alignment={vertical:'middle',horizontal:'left',wrapText:true};cell.border=thinBorder();}
+
+  // ── Encabezado tipo BMS ──
+  ws.mergeCells('A1:'+lastL+'1');
+  var t=ws.getCell('A1'); t.value='MAPA DE CAMPO — '+opts.nombre;
+  t.font={bold:true,color:{argb:STYLE.headerTxt},size:13};
+  t.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};
+  t.alignment={horizontal:'left',vertical:'middle'};
+  ws.getRow(1).height=22;
+
+  ws.mergeCells('A3:C3'); var ss=ws.getCell('A3'); ss.value='Selected Studies:'; ss.font={bold:true,size:9,color:{argb:STYLE.labelTxt}};
+
+  var h4=['Order','Study','Environment','# of Entries','# of Reps','Plots Needed'];
+  h4.forEach(function(v,i){var cell=put(4,i+1,v);cell.font={bold:true,color:{argb:STYLE.headerTxt},size:9};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=thinBorder();});
+  var v5=[1,opts.nombre,1,opts.nEntries,1,opts.nPlots];
+  v5.forEach(function(v,i){var cell=put(5,i+1,v);styleVal(cell);cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};});
+
+  styleLabel(put(6,1,'Total Number of Plots')); ws.mergeCells('B6:C6'); var tp=ws.getCell('B6'); tp.value=opts.nPlots; styleVal(tp); tp.alignment={horizontal:'center',vertical:'middle'};
+
+  // Bloque de detalles (3 pares etiqueta/valor por fila)
+  styleLabel(put(8,1,'FIELD AND BLOCK DETAILS')); styleLabel(put(8,3,'ROW, FAJA AND PLOT DETAILS')); styleLabel(put(8,5,'PLANTING DETAILS'));
+  var rows=[
+    ['Field Location',opts.loc||'', 'Block Capacity',R+' Surcos, '+nFajas+' Fajas', 'Starting Coordinates','Column 1, Faja 1'],
+    ['Field Name','',               'Surcos per Plot','1',                          'Plot Layout Order','Serpentine'],
+    ['Block Name',opts.block||'',   'Columns',String(R),                            'Row Capacity of Planting Machine','1']
+  ];
+  rows.forEach(function(rr,ri){
+    var rowIdx=9+ri;
+    styleLabel(put(rowIdx,1,rr[0])); styleVal(put(rowIdx,2,rr[1]));
+    styleLabel(put(rowIdx,3,rr[2])); styleVal(put(rowIdx,4,rr[3]));
+    styleLabel(put(rowIdx,5,rr[4])); styleVal(put(rowIdx,6,rr[5]));
+    ws.getRow(rowIdx).height=26;
+  });
+  ws.getRow(8).height=24;
+
+  // ── Rejilla del mapa ──
+  var HR=13;                                   // fila del encabezado de surcos
+  var hc=put(HR,1,'Faja \\ Surco'); hc.font={bold:true,color:{argb:STYLE.headerTxt},size:9}; hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}}; hc.alignment={horizontal:'center',vertical:'middle',wrapText:true}; hc.border=thinBorder();
+  for(var c=1;c<=maxCol;c++){
+    var lbl=opts.isSelf?String(c):(c+(c%2===1?' UP':' DOWN'));
+    var cell=put(HR,c+1,lbl);
+    cell.font={bold:true,color:{argb:STYLE.headerTxt},size:8};
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};
+    cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+    cell.border=thinBorder();
+  }
+  var rowPtr=HR;
+  for(var f=nFajas;f>=1;f--){
+    rowPtr++;
+    var fl=put(rowPtr,1,'Faja '+f+(f%2===1?' →':' ←'));
+    fl.font={bold:true,color:{argb:STYLE.fajaTxt},size:9}; fl.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.fajaFill}};
+    fl.alignment={horizontal:'left',vertical:'middle'}; fl.border=thinBorder();
+    for(var c=1;c<=maxCol;c++){
+      var r=grid[f+'_'+c], cell=put(rowPtr,c+1,'');
+      cell.border=thinBorder(); cell.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cell.font={size:8};
+      if(r){
+        var isMale=(!opts.isSelf && r.PLOT_ROLE==='Male');
+        var fill=opts.isSelf?STYLE.selfFill:(isMale?STYLE.maleFill:STYLE.femFill);
+        var txt =opts.isSelf?STYLE.selfTxt :(isMale?STYLE.maleTxt :STYLE.femTxt);
+        var lines=['Plot:'+r.PLOT_CODE,'GID:'+r.GID];
+        if(!opts.isSelf) lines.push('Role:'+r.PLOT_ROLE);
+        lines.push('Entry:'+r.ENTRY_NO);
+        cell.value=lines.join('\n');
+        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:fill}};
+        cell.font={size:8,color:{argb:txt}};
+      }
+    }
+    ws.getRow(rowPtr).height=opts.isSelf?46:56;
+  }
+
+  // Anchos de columna
+  ws.getColumn(1).width=13;
+  for(var c=2;c<=totCols;c++) ws.getColumn(c).width=14;
+
+  // Impresión: horizontal, ajustar al ancho, repetir encabezado y columna de fajas
+  ws.pageSetup={
+    orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0,
+    horizontalCentered:true,
+    margins:{left:0.3,right:0.3,top:0.4,bottom:0.4,header:0.2,footer:0.2},
+    printTitlesRow:'1:'+HR, printTitlesColumn:'A:A'
+  };
+  ws.views=[{state:'frozen',xSplit:1,ySplit:HR}];
+  return ws;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ███ MODO BCR (BACKCROSS) — sin cambios respecto a la versión verificada ███
+   ═══════════════════════════════════════════════════════════════════════ */
+var seq=[];              // [{gid, role:'Fem'|'Male'}]  en orden del archivo original
+var entryFromImport={};  // GID -> ENTRY_NO (del importlist)
+var entryAuto={};        // GID -> ENTRY_NO (autogenerado por 1a aparición)
+var uniqueEntries=[];    // [{gid, role, entry}]
+var disenoData=[];       // registros finales
+
+window.addEventListener('DOMContentLoaded',function(){
+  updateInfoMB(); updatePlotPreview();
+  selfUpdateInfo(); selfUpdatePlotPreview();
+  initSharedUrlInputs();
+  renderReminder();
+  fetchShared();
+});
+
+function updatePlotPreview(){
+  var p=gv('pPrefix').trim(), s=parseInt(gv('pPlotStart'))||1;
+  ge('plotPreviewTxt').textContent=p+s+', '+p+(s+1)+', '+p+(s+2)+'…';
+}
+function onPatternChange(){ rebuildEntries(); updateInfoMB(); }
+
+function updateInfoMB(){
+  var R=+gv('pRowsPerFaja'), nF=+gv('pF'), nM=+gv('pM'), mbSz=nF+nM;
+  if(!mbSz||!R) return;
+  var mbxs=Math.floor(R/mbSz);
+  var extra='';
+  if(seq.length){
+    var nMB=Math.ceil(seq.length/mbSz);
+    var nFajas=mbxs>0?Math.ceil(nMB/mbxs):0;
+    extra=' · Cargado: <b>'+nMB+' MB</b> → <b>'+nFajas+' fajas</b> · <b>'+seq.length+' plots</b>';
+  }
+  ge('infoMB').innerHTML='Minibloque <b>'+nF+'F+'+nM+'M</b> ('+mbSz+') · <b>'+mbxs+'</b> MB/faja'+extra;
+}
+
+function loadGermFile(input){
+  var file=input.files[0]; if(!file) return; input.value='';
+  ge('fnameGerm').textContent=file.name;
+  readWB(file,function(wb){
+    try{
+      var data=findSheetWithGID(wb);
+      if(!data){showAlert('alertGerm','No se encontró una hoja con columna GID.','err');return;}
+      var gidKey=keyOf(data[0],['gid']);
+      var rolKey=keyOf(data[0],['hembra/macho','female/male','rol','role','plot_role','sexo','sex']);
+      if(!gidKey){showAlert('alertGerm','No se encontró columna GID.','err');return;}
+
+      var patKey=Object.keys(data[0]).find(function(k){var kl=k.toLowerCase();return kl.indexOf('patr')>=0&&kl.indexOf('mini')>=0;});
+      if(patKey){
+        var pv=String((data.find(function(r){return r[patKey];})||{})[patKey]||'').toLowerCase();
+        var mF=pv.match(/(\d+)\s*f/), mM=pv.match(/(\d+)\s*m/);
+        if(mF&&mM){ge('pF').value=+mF[1];ge('pM').value=+mM[1];}
+      }
+
+      seq=[];
+      data.forEach(function(r){
+        var gid=r[gidKey]; if(gid===''||gid==null) return;
+        var role='Fem';
+        if(rolKey){var rv=String(r[rolKey]||'').trim().toLowerCase();
+          if(rv==='male'||rv==='macho'||rv==='m') role='Male';}
+        seq.push({gid:+gid, role:role});
+      });
+      if(!seq.length){showAlert('alertGerm','El archivo no tiene filas con GID.','err');return;}
+
+      rebuildEntries();
+      ge('btnExpImp').disabled=false;
+      var nF=uniqueEntries.filter(function(e){return e.role==='Fem';}).length;
+      var nM=uniqueEntries.filter(function(e){return e.role==='Male';}).length;
+      showAlert('alertGerm','&#10003; '+seq.length+' filas · '+uniqueEntries.length+' GIDs únicos ('+nF+' ♀ / '+nM+' ♂)<br>'+
+        '<small style="opacity:.8">GID: "'+gidKey+'"'+(rolKey?' · rol: "'+rolKey+'"':' · sin rol → todo Fem')+'</small>','ok');
+      updateInfoMB();
+    }catch(err){showAlert('alertGerm','Error: '+err.message,'err');}
+  });
+}
+
+function loadImportFile(input){
+  var file=input.files[0]; if(!file) return; input.value='';
+  ge('fnameImp').textContent=file.name;
+  readWB(file,function(wb){
+    try{
+      var data=null;
+      for(var i=0;i<wb.SheetNames.length;i++){
+        var tmp=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]],{defval:''});
+        if(tmp.length && keyOf(tmp[0],['entry_no']) && keyOf(tmp[0],['gid'])){data=tmp;break;}
+      }
+      if(!data){showAlert('alertImp','No se encontró hoja con ENTRY_NO y GID.','err');return;}
+      var ek=keyOf(data[0],['entry_no']), gk=keyOf(data[0],['gid']);
+      entryFromImport={};
+      data.forEach(function(r){
+        var g=r[gk], e=r[ek];
+        if(g!==''&&g!=null&&e!==''&&e!=null) entryFromImport[+g]=+e;
+      });
+      rebuildEntries();
+      showAlert('alertImp','&#10003; '+Object.keys(entryFromImport).length+' GIDs con ENTRY_NO desde importlist.','ok');
+    }catch(err){showAlert('alertImp','Error: '+err.message,'err');}
+  });
+}
+
+function rebuildEntries(){
+  var seen=new Set(); uniqueEntries=[]; entryAuto={};
+  seq.forEach(function(s){
+    if(!seen.has(s.gid)){seen.add(s.gid);uniqueEntries.push({gid:s.gid,role:s.role});}
+  });
+  uniqueEntries.forEach(function(e,i){entryAuto[e.gid]=i+1;});
+  uniqueEntries.forEach(function(e){e.entry=entryOf(e.gid);});
+  renderGermSummary();
+}
+function entryOf(gid){
+  if(entryFromImport.hasOwnProperty(gid)) return entryFromImport[gid];
+  return entryAuto[gid];
+}
+
+function renderGermSummary(){
+  var list=ge('germSummaryList'); list.innerHTML='';
+  uniqueEntries.forEach(function(e,i){
+    var d=document.createElement('div'); d.className='germ-row';
+    var cls=e.role==='Fem'?'germ-role-f':'germ-role-m';
+    var txt=e.role==='Fem'?'♀ Fem':'♂ Male';
+    d.innerHTML='<span class="germ-no">'+(i+1)+'</span><span class="germ-gid">'+e.gid+'</span>'+
+                '<span class="germ-ent">'+entryOf(e.gid)+'</span><span class="'+cls+'">'+txt+'</span>';
+    list.appendChild(d);
+  });
+  ge('germSummaryPanel').style.display=uniqueEntries.length?'block':'none';
+}
+
+function generarDiseno(){
+  var R=+gv('pRowsPerFaja'), nF=+gv('pF'), nM=+gv('pM'), mbSz=nF+nM;
+  var prefix=gv('pPrefix').trim(), start=parseInt(gv('pPlotStart'))||1;
+  if(!seq.length){showAlert('alertGen','Carga primero el archivo original (paso 1).','err');return;}
+  if(!R||!nF||!nM){showAlert('alertGen','Completa surcos por faja, Female y Male.','err');return;}
+  var mbxs=Math.floor(R/mbSz);
+  if(mbxs<1){showAlert('alertGen','Con '+R+' surcos no cabe ni un minibloque de '+mbSz+'.','err');return;}
+
+  var mbs=[];
+  for(var i=0;i+mbSz<=seq.length;i+=mbSz) mbs.push(seq.slice(i,i+mbSz));
+  var resto=seq.length%mbSz;
+  if(resto) mbs.push(seq.slice(seq.length-resto));
+  var nMB=mbs.length, nFajas=Math.ceil(nMB/mbxs);
+
+  var records=[];
+  for(var f=1;f<=nFajas;f++){
+    var fajaMbs=mbs.slice((f-1)*mbxs, f*mbxs);
+    var flat=[]; fajaMbs.forEach(function(mb){mb.forEach(function(s){flat.push(s);});});
+    var alongRow = (f%2===1) ? flat.slice() : flat.slice().reverse();
+    alongRow.forEach(function(s,idx){
+      records.push({TRIAL_INSTANCE:1, ENTRY_NO:entryOf(s.gid), GID:s.gid,
+                    ROW:idx+1, COL:f, PLOT_ROLE:s.role});
+    });
+  }
+
+  var plotNo=1, codeNo=start;
+  for(var f=1;f<=nFajas;f++){
+    var sub=records.filter(function(r){return r.COL===f;}).sort(function(a,b){return a.ROW-b.ROW;});
+    var blocks=[];
+    for(var i=0;i<sub.length;i+=mbSz) blocks.push(sub.slice(i,i+mbSz));
+    var visit=[];
+    if(f%2===1){
+      blocks.forEach(function(b){b.forEach(function(r){visit.push(r);});});
+    } else {
+      for(var bi=blocks.length-1;bi>=0;bi--){
+        var b=blocks[bi];
+        var males=b.filter(function(r){return r.PLOT_ROLE==='Male';}).sort(function(a,c){return c.ROW-a.ROW;});
+        var fems =b.filter(function(r){return r.PLOT_ROLE!=='Male';}).sort(function(a,c){return c.ROW-a.ROW;});
+        males.forEach(function(r){visit.push(r);});
+        fems.forEach(function(r){visit.push(r);});
+      }
+    }
+    visit.forEach(function(r){r.PLOT_NO=plotNo++; r.PLOT_CODE=prefix+(codeNo++);});
+  }
+
+  records.sort(function(a,b){return a.PLOT_NO-b.PLOT_NO;});
+  disenoData=records;
+  ge('btnExp').disabled=false;
+  var lastCode=prefix+(start+records.length-1);
+  showAlert('alertGen','&#10003; Diseño generado: '+records.length+' plots en '+nFajas+' fajas.<br>'+
+    '<small>Último PLOT_CODE: <b>'+lastCode+'</b> · próximo vivero sugerido: <b>'+nextHundred(start+records.length-1)+'</b></small>','ok');
+
+  ge('sTot').textContent=records.length;
+  ge('sMB').textContent=nMB;
+  ge('sFajas').textContent=nFajas;
+  ge('sSurcos').textContent=Math.max.apply(null,records.map(function(r){return r.ROW;}));
+  ge('statsArea').style.display='block';
+
+  renderMapa(records,R,nFajas);
+  renderTabla(records);
+  renderMB(mbs,mbxs,nF,nM);
+  showTab('mapa');
+}
+
+function renderMapa(records,R,nFajas){
+  var fajaStart={};
+  records.forEach(function(r){
+    if(!(r.COL in fajaStart) || r.PLOT_NO<fajaStart[r.COL]) fajaStart[r.COL]=r.PLOT_NO;
+  });
+  var grid={}, maxCol=0;
+  records.forEach(function(r){
+    var p=r.PLOT_NO-fajaStart[r.COL]+1;
+    var c=(r.COL%2===1)?p:(R+1-p);
+    grid[r.COL+'_'+c]=r;
+    if(c>maxCol) maxCol=c;
+  });
+  var h='<div class="map-scroll"><table class="field-map"><thead>'+
+        '<tr><th>Faja \\ Surco</th>';
+  for(var c=1;c<=maxCol;c++) h+='<th>'+c+'</th>';
+  h+='</tr><tr><th class="dir"></th>';
+  for(var c=1;c<=maxCol;c++) h+='<th class="dir">'+(c%2===1?'UP':'DOWN')+'</th>';
+  h+='</tr></thead><tbody>';
+  for(var f=nFajas;f>=1;f--){
+    var arrow=(f%2===1)?'→':'←';
+    h+='<tr><td class="surco-lbl">Faja '+f+' '+arrow+'</td>';
+    for(var c=1;c<=maxCol;c++){
+      var r=grid[f+'_'+c];
+      if(r){var cls=r.PLOT_ROLE==='Male'?'cell-m':'cell-f';
+        h+='<td class="'+cls+' plot-cell" title="PLOT_NO '+r.PLOT_NO+'">'+
+           '<div class="mc-plot">'+r.PLOT_CODE+'</div>'+
+           '<div class="mc-gid">GID '+r.GID+'</div>'+
+           '<div class="mc-role">'+r.PLOT_ROLE+' · E'+r.ENTRY_NO+'</div></td>';}
+      else h+='<td class="cell-e"></td>';
+    }
+    h+='</tr>';
+  }
+  h+='</tbody></table></div>'+
+     '<div style="font-size:.7rem;color:#64748b;margin-top:8px">Vista física (como la acomoda BMS con «Serpentine»): cada celda muestra PLOT_CODE, GID, Role y Entry. '+
+     'Faja impar siembra → , faja par ← ; físicamente todas quedan F,F,F,M,M. Pasa el cursor por una celda para ver el PLOT_NO.</div>';
+  ge('tabMapa').innerHTML=h;
+}
+
+function renderTabla(records){
+  var cols=['TRIAL_INSTANCE','ENTRY_NO','GID','ROW','COL','PLOT_NO','PLOT_CODE','PLOT_ROLE'];
+  var h='<div class="tbl-scroll"><table class="dtable"><thead><tr>';
+  cols.forEach(function(c){h+='<th>'+c+'</th>';}); h+='</tr></thead><tbody>';
+  records.forEach(function(r){
+    var rc=r.PLOT_ROLE==='Male'?'rm':'rf';
+    h+='<tr><td>'+r.TRIAL_INSTANCE+'</td><td>'+r.ENTRY_NO+'</td><td>'+r.GID+'</td>'+
+       '<td>'+r.ROW+'</td><td>'+r.COL+'</td><td>'+r.PLOT_NO+'</td><td>'+r.PLOT_CODE+'</td>'+
+       '<td class="'+rc+'">'+r.PLOT_ROLE+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  ge('tabTabla').innerHTML=h;
+}
+
+function renderMB(mbs,mbxs,nF,nM){
+  var h='<div class="tbl-scroll"><table class="dtable"><thead><tr><th>MB#</th><th>Faja</th>';
+  for(var i=1;i<=nF;i++) h+='<th>♀'+i+'</th>';
+  for(var i=1;i<=nM;i++) h+='<th>♂'+i+'</th>';
+  h+='</tr></thead><tbody>';
+  mbs.forEach(function(mb,i){
+    var faja=Math.floor(i/mbxs)+1;
+    h+='<tr><td>'+(i+1)+'</td><td>'+faja+'</td>';
+    var fems=mb.filter(function(s){return s.role==='Fem';});
+    var males=mb.filter(function(s){return s.role==='Male';});
+    for(var k=0;k<nF;k++) h+='<td class="rf">'+(fems[k]?fems[k].gid:'')+'</td>';
+    for(var k=0;k<nM;k++) h+='<td class="rm">'+(males[k]?males[k].gid:'')+'</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  ge('tabMb').innerHTML=h;
+}
+
+function exportarImportlist(){
+  if(!uniqueEntries.length){showAlert('alertImp','Carga primero el archivo original (paso 1).','err');return;}
+  var nombre=gv('pNombre').trim()||'VIVERO';
+  var entries=uniqueEntries.map(function(e){return {gid:e.gid,entry:entryOf(e.gid)};});
+  var wb=buildImportlistWorkbook(entries,nombre);
+  wb.xlsx.writeBuffer().then(function(buf){downloadBlob(buf,'01_ImportList_'+nombre+'.xlsx');})
+    .catch(function(err){showAlert('alertImp','Error al exportar: '+err.message,'err');});
+  showAlert('alertImp','&#10003; Importlist exportado con hojas Observation + Entry Details: '+uniqueEntries.length+' GIDs únicos numerados 1 a '+uniqueEntries.length+'.','ok');
+}
+
+function exportarXLSX(){
+  if(!disenoData.length) return;
+  var nombre=gv('pNombre').trim()||'VIVERO';
+  var R=+gv('pRowsPerFaja');
+
+  // grid físico (serpentina): posición p dentro de la faja -> surco físico
+  var fajaStart={};
+  disenoData.forEach(function(r){
+    if(!(r.COL in fajaStart) || r.PLOT_NO<fajaStart[r.COL]) fajaStart[r.COL]=r.PLOT_NO;
+  });
+  var grid={}, nFajas=0;
+  disenoData.forEach(function(r){
+    var p=r.PLOT_NO-fajaStart[r.COL]+1;
+    var c=(r.COL%2===1)?p:(R+1-p);
+    grid[r.COL+'_'+c]=r;
+    if(r.COL>nFajas) nFajas=r.COL;
+  });
+
+  var cols=['TRIAL_INSTANCE','ENTRY_NO','GID','ROW','COL','PLOT_NO','PLOT_CODE','PLOT_ROLE'];
+
+  var wbDiseno=new ExcelJS.Workbook(); wbDiseno.creator='Generador de Diseño'; wbDiseno.created=new Date();
+  addDisenoSheet(wbDiseno,cols,disenoData,[15,10,9,7,7,9,12,10]);
+
+  var wbMapa=new ExcelJS.Workbook(); wbMapa.creator='Generador de Diseño'; wbMapa.created=new Date();
+  addMapaSheet(wbMapa,grid,{nombre:nombre,loc:gv('pFieldLoc').trim(),block:gv('pBlockName').trim(),
+    nEntries:uniqueEntries.length,nPlots:disenoData.length,R:R,nFajas:nFajas,isSelf:false});
+
+  var entries=uniqueEntries.map(function(e){return {gid:e.gid,entry:entryOf(e.gid)};});
+  var wbImp=buildImportlistWorkbook(entries,nombre);
+
+  // Recordar el último PLOT_CODE usado (para saber con cuál empezar el próximo vivero)
+  var startNum=parseInt(gv('pPlotStart'))||1;
+  var lastNum=startNum+disenoData.length-1;
+  saveLastPlot(gv('pPrefix').trim(), lastNum, nombre);
+  showSharedUpdate('BCR', gv('pPrefix').trim(), lastNum, nombre, 'BCR');
+
+  // Descarga individual: cada archivo por separado (cargas individuales en BMS)
+  downloadWorkbooks([
+    {wb:wbImp,    filename:'01_ImportList_'+nombre+'.xlsx'},
+    {wb:wbDiseno, filename:'02_Diseno_'+nombre+'.xlsx'},
+    {wb:wbMapa,   filename:'03_Mapa_'+nombre+'.xlsx'}
+  ]);
+  showAlert('alertGen','&#10003; Exportados 3 archivos individuales: ImportList (con Entry Details), Diseño y Mapa.','ok');
+}
+
+function showTab(name){
+  ge('tabMapa').style.display =name==='mapa' ?'block':'none';
+  ge('tabTabla').style.display=name==='tabla'?'block':'none';
+  ge('tabMb').style.display   =name==='mb'   ?'block':'none';
+  ge('mainBCR').querySelectorAll('.tab').forEach(function(btn,i){
+    btn.classList.toggle('active',['mapa','tabla','mb'][i]===name);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ███ MODO ESTUDIOS SELF ███
+   Reglas (verificadas contra 02_Diseño_07_Self_RECOVERY):
+     · Columnas: TRIAL_INSTANCE, ENTRY_NO, GID, ROW, COL, PLOT_NO, PLOT_CODE
+     · GID se copia tal cual el plan, en su orden (incluye repetidos)
+     · ENTRY_NO = BUSCARV del GID contra el importlist (auto 1..N por 1a aparición)
+     · Surcos por faja (R) manual; fajas (COL) se calculan solas
+     · PLOT_NO = 1..N continuo en orden de siembra
+     · PLOT_CODE = prefijo + número inicial, manual, continuo
+     · Serpentina SIMPLE en ROW (faja impar 1..R, faja par R..1). SIN rol,
+       SIN minibloques y SIN volteo de secuencia como el Backcross.
+   ═══════════════════════════════════════════════════════════════════════ */
+var selfSeq=[];             // [gid, gid, ...] en orden del plan (con repetidos)
+var selfEntryFromImport={}; // GID -> ENTRY_NO
+var selfEntryAuto={};       // GID -> ENTRY_NO (autogenerado)
+var selfUnique=[];          // [{gid, entry}]
+var selfData=[];            // registros finales
+
+function selfUpdatePlotPreview(){
+  var p=gv('selfPrefix').trim(), s=parseInt(gv('selfPlotStart'))||0;
+  ge('selfPlotPreviewTxt').textContent=p+s+', '+p+(s+1)+', '+p+(s+2)+'…';
+}
+function selfUpdateInfo(){
+  var R=+gv('selfRowsPerFaja');
+  var extra='';
+  if(selfSeq.length && R){
+    var nFajas=Math.ceil(selfSeq.length/R);
+    extra=' · Cargado: <b>'+selfSeq.length+' plots</b> → <b>'+nFajas+' fajas</b>';
+  }
+  ge('selfInfo').innerHTML='Serpentina simple · <b>'+R+'</b> surcos/faja'+extra;
+}
+
+function selfLoadPlanFile(input){
+  var file=input.files[0]; if(!file) return; input.value='';
+  ge('selfFnamePlan').textContent=file.name;
+  readWB(file,function(wb){
+    try{
+      // buscar hoja con GID (acepta "GID", "GID (siembra)", etc.)
+      var data=null;
+      for(var i=0;i<wb.SheetNames.length;i++){
+        var tmp=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]],{defval:''});
+        if(tmp.length && gidKeyOf(tmp[0])){data=tmp;break;}
+      }
+      if(!data){showAlert('selfAlertPlan','No se encontró una hoja con columna GID.','err');return;}
+      var gidKey=gidKeyOf(data[0]);
+
+      selfSeq=[];
+      data.forEach(function(r){
+        var gid=r[gidKey]; if(gid===''||gid==null) return;
+        var n=+gid; if(isNaN(n)) return;   // ignora filas de texto no numérico
+        selfSeq.push(n);
+      });
+      if(!selfSeq.length){showAlert('selfAlertPlan','El archivo no tiene filas con GID.','err');return;}
+
+      selfRebuild();
+      ge('selfBtnExpImp').disabled=false;
+      showAlert('selfAlertPlan','&#10003; '+selfSeq.length+' plots (GID copiados tal cual el plan) · '+
+        selfUnique.length+' GIDs únicos<br><small style="opacity:.8">Columna GID: "'+gidKey+'"</small>','ok');
+      selfUpdateInfo();
+    }catch(err){showAlert('selfAlertPlan','Error: '+err.message,'err');}
+  });
+}
+
+function selfLoadImportFile(input){
+  var file=input.files[0]; if(!file) return; input.value='';
+  ge('selfFnameImp').textContent=file.name;
+  readWB(file,function(wb){
+    try{
+      var data=null;
+      for(var i=0;i<wb.SheetNames.length;i++){
+        var tmp=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]],{defval:''});
+        if(tmp.length && keyOf(tmp[0],['entry_no']) && gidKeyOf(tmp[0])){data=tmp;break;}
+      }
+      if(!data){showAlert('selfAlertImp','No se encontró hoja con ENTRY_NO y GID.','err');return;}
+      var ek=keyOf(data[0],['entry_no']), gk=gidKeyOf(data[0]);
+      selfEntryFromImport={};
+      data.forEach(function(r){
+        var g=r[gk], e=r[ek];
+        if(g!==''&&g!=null&&e!==''&&e!=null && !isNaN(+g) && !isNaN(+e)) selfEntryFromImport[+g]=+e;
+      });
+      selfRebuild();
+      showAlert('selfAlertImp','&#10003; '+Object.keys(selfEntryFromImport).length+' GIDs con ENTRY_NO desde importlist.','ok');
+    }catch(err){showAlert('selfAlertImp','Error: '+err.message,'err');}
+  });
+}
+
+function selfRebuild(){
+  var seen=new Set(); selfUnique=[]; selfEntryAuto={};
+  selfSeq.forEach(function(g){
+    if(!seen.has(g)){seen.add(g);selfUnique.push({gid:g});}
+  });
+  selfUnique.forEach(function(e,i){selfEntryAuto[e.gid]=i+1;});
+  selfUnique.forEach(function(e){e.entry=selfEntryOf(e.gid);});
+  selfRenderSummary();
+}
+function selfEntryOf(gid){
+  if(selfEntryFromImport.hasOwnProperty(gid)) return selfEntryFromImport[gid];
+  return selfEntryAuto[gid];
+}
+
+function selfRenderSummary(){
+  var list=ge('selfSummaryList'); list.innerHTML='';
+  selfUnique.forEach(function(e,i){
+    var d=document.createElement('div'); d.className='germ-row self';
+    d.innerHTML='<span class="germ-no">'+(i+1)+'</span><span class="germ-gid">'+e.gid+'</span>'+
+                '<span class="germ-ent">'+selfEntryOf(e.gid)+'</span>';
+    list.appendChild(d);
+  });
+  ge('selfSummaryPanel').style.display=selfUnique.length?'block':'none';
+}
+
+function selfGenerar(){
+  var R=+gv('selfRowsPerFaja');
+  var prefix=gv('selfPrefix').trim(), start=parseInt(gv('selfPlotStart'))||0;
+  if(!selfSeq.length){showAlert('selfAlertGen','Carga primero el plan inicial (paso 1).','err');return;}
+  if(!R||R<2){showAlert('selfAlertGen','Indica un número válido de surcos por faja.','err');return;}
+
+  var nFajas=Math.ceil(selfSeq.length/R);
+  var records=[];
+  selfSeq.forEach(function(gid,i){
+    var col=Math.floor(i/R)+1;            // faja (calculada sola)
+    var p=(i%R)+1;                        // posición de siembra dentro de la faja (1..R)
+    var row=(col%2===1)?p:(R+1-p);        // serpentina simple en ROW (sin volteo de rol)
+    records.push({
+      TRIAL_INSTANCE:1,
+      ENTRY_NO:selfEntryOf(gid),
+      GID:gid,
+      ROW:row,
+      COL:col,
+      PLOT_NO:i+1,                        // 1..N continuo
+      PLOT_CODE:prefix+(start+i)          // manual, continuo
+    });
+  });
+
+  selfData=records;
+  ge('selfBtnExp').disabled=false;
+  var lastCode=prefix+(start+records.length-1);
+  showAlert('selfAlertGen','&#10003; Diseño generado: '+records.length+' plots en '+nFajas+' fajas.<br>'+
+    '<small>Último PLOT_CODE: <b>'+lastCode+'</b> · próximo vivero sugerido: <b>'+nextHundred(start+records.length-1)+'</b></small>','ok');
+
+  ge('selfSTot').textContent=records.length;
+  ge('selfSFajas').textContent=nFajas;
+  ge('selfSSurcos').textContent=R;
+  ge('selfSUniq').textContent=selfUnique.length;
+  ge('selfStatsArea').style.display='block';
+
+  selfRenderMapa(records,R,nFajas);
+  selfRenderTabla(records);
+  selfShowTab('mapa');
+}
+
+/* Mapa físico: ROW ya ES el surco físico (por la serpentina). Faja = COL. */
+function selfRenderMapa(records,R,nFajas){
+  var grid={}, maxCol=0;
+  records.forEach(function(r){
+    grid[r.COL+'_'+r.ROW]=r;
+    if(r.ROW>maxCol) maxCol=r.ROW;
+  });
+  var h='<div class="map-scroll"><table class="field-map"><thead>'+
+        '<tr><th>Faja \\ Surco</th>';
+  for(var c=1;c<=maxCol;c++) h+='<th>'+c+'</th>';
+  h+='</tr><tr><th class="dir"></th>';
+  for(var c=1;c<=maxCol;c++) h+='<th class="dir"></th>';
+  h+='</tr></thead><tbody>';
+  for(var f=nFajas;f>=1;f--){
+    var arrow=(f%2===1)?'→':'←';
+    h+='<tr><td class="surco-lbl">Faja '+f+' '+arrow+'</td>';
+    for(var c=1;c<=maxCol;c++){
+      var r=grid[f+'_'+c];
+      if(r){
+        h+='<td class="cell-s plot-cell" title="PLOT_NO '+r.PLOT_NO+'">'+
+           '<div class="mc-plot">'+r.PLOT_CODE+'</div>'+
+           '<div class="mc-gid">GID '+r.GID+'</div>'+
+           '<div class="mc-role">E'+r.ENTRY_NO+'</div></td>';
+      } else h+='<td class="cell-e"></td>';
+    }
+    h+='</tr>';
+  }
+  h+='</tbody></table></div>'+
+     '<div style="font-size:.7rem;color:#64748b;margin-top:8px">Vista física (serpentina simple): cada celda muestra PLOT_CODE, GID y Entry. '+
+     'Faja impar siembra → , faja par ← . Pasa el cursor por una celda para ver el PLOT_NO.</div>';
+  ge('selfTabMapa').innerHTML=h;
+}
+
+function selfRenderTabla(records){
+  var cols=['TRIAL_INSTANCE','ENTRY_NO','GID','ROW','COL','PLOT_NO','PLOT_CODE'];
+  var h='<div class="tbl-scroll"><table class="dtable"><thead><tr>';
+  cols.forEach(function(c){h+='<th>'+c+'</th>';}); h+='</tr></thead><tbody>';
+  records.forEach(function(r){
+    h+='<tr><td>'+r.TRIAL_INSTANCE+'</td><td>'+r.ENTRY_NO+'</td><td>'+r.GID+'</td>'+
+       '<td>'+r.ROW+'</td><td>'+r.COL+'</td><td>'+r.PLOT_NO+'</td><td>'+r.PLOT_CODE+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  ge('selfTabTabla').innerHTML=h;
+}
+
+function selfExportarImportlist(){
+  if(!selfUnique.length){showAlert('selfAlertImp','Carga primero el plan inicial (paso 1).','err');return;}
+  var nombre=gv('selfNombre').trim()||'SELF';
+  var entries=selfUnique.map(function(e){return {gid:e.gid,entry:selfEntryOf(e.gid)};});
+  var wb=buildImportlistWorkbook(entries,nombre);
+  wb.xlsx.writeBuffer().then(function(buf){downloadBlob(buf,'01_ImportList_'+nombre+'.xlsx');})
+    .catch(function(err){showAlert('selfAlertImp','Error al exportar: '+err.message,'err');});
+  showAlert('selfAlertImp','&#10003; Importlist exportado con hojas Observation + Entry Details: '+selfUnique.length+' GIDs únicos numerados 1 a '+selfUnique.length+'.','ok');
+}
+
+function selfExportarXLSX(){
+  if(!selfData.length) return;
+  var nombre=gv('selfNombre').trim()||'SELF';
+  var R=+gv('selfRowsPerFaja');
+
+  // grid físico (ROW ya es el surco físico por la serpentina)
+  var grid={}, nFajas=0;
+  selfData.forEach(function(r){
+    grid[r.COL+'_'+r.ROW]=r;
+    if(r.COL>nFajas) nFajas=r.COL;
+  });
+
+  var cols=['TRIAL_INSTANCE','ENTRY_NO','GID','ROW','COL','PLOT_NO','PLOT_CODE'];
+
+  var wbDiseno=new ExcelJS.Workbook(); wbDiseno.creator='Generador de Diseño'; wbDiseno.created=new Date();
+  addDisenoSheet(wbDiseno,cols,selfData,[15,10,9,7,7,9,12]);
+
+  var wbMapa=new ExcelJS.Workbook(); wbMapa.creator='Generador de Diseño'; wbMapa.created=new Date();
+  addMapaSheet(wbMapa,grid,{nombre:nombre,loc:gv('selfFieldLoc').trim(),block:gv('selfBlockName').trim(),
+    nEntries:selfUnique.length,nPlots:selfData.length,R:R,nFajas:nFajas,isSelf:true});
+
+  var entries=selfUnique.map(function(e){return {gid:e.gid,entry:selfEntryOf(e.gid)};});
+  var wbImp=buildImportlistWorkbook(entries,nombre);
+
+  // Recordar el último PLOT_CODE usado (para saber con cuál empezar el próximo vivero)
+  var startNum=parseInt(gv('selfPlotStart'))||0;
+  var lastNum=startNum+selfData.length-1;
+  saveLastPlot(gv('selfPrefix').trim(), lastNum, nombre);
+  showSharedUpdate('Self', gv('selfPrefix').trim(), lastNum, nombre, 'Self');
+
+  downloadWorkbooks([
+    {wb:wbImp,    filename:'01_ImportList_'+nombre+'.xlsx'},
+    {wb:wbDiseno, filename:'02_Diseno_'+nombre+'.xlsx'},
+    {wb:wbMapa,   filename:'03_Mapa_'+nombre+'.xlsx'}
+  ]);
+  showAlert('selfAlertGen','&#10003; Exportados 3 archivos individuales: ImportList (con Entry Details), Diseño y Mapa.','ok');
+}
+
+function selfShowTab(name){
+  ge('selfTabMapa').style.display =name==='mapa' ?'block':'none';
+  ge('selfTabTabla').style.display=name==='tabla'?'block':'none';
+  ge('mainSelf').querySelectorAll('.tab').forEach(function(btn,i){
+    btn.classList.toggle('active',['mapa','tabla'][i]===name);
+  });
+}
+</script>
+</body>
+</html>
