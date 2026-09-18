@@ -157,6 +157,11 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
         <input id="pRowsPerFaja" type="number" value="15" min="5" max="500" oninput="updateInfoMB()"/>
         <small>Cuántos plots físicos entran a lo largo de una faja (ej. 15). Las fajas se calculan solas.</small>
       </div>
+      <div class="field">
+        <label>Total de fajas del contrato (opcional)</label>
+        <input id="pFajasManual" type="number" min="0" value="" placeholder="dejar vacío = automático" oninput="updateInfoMB()"/>
+        <small>Si el contrato asigna más fajas de las que realmente se necesitan, indica aquí el <b>total</b>. Las fajas extra quedarán <b>vacías</b> en el mapa (no afecta el archivo de Diseño, solo el Mapa).</small>
+      </div>
       <div class="g2">
         <div class="field">
           <label>Surcos ♀ Female</label>
@@ -374,10 +379,29 @@ function readWB(file,cb){
   r.onload=function(e){ try{cb(XLSX.read(e.target.result,{type:'binary'}));}catch(err){alert('No se pudo leer: '+err.message);} };
   r.readAsBinaryString(file);
 }
+// Busca la fila real de encabezados (la que tiene una celda "GID"), sin importar en qué
+// fila esté. Esto soporta tanto el formato simple (encabezado en la fila 1) como formatos
+// con metadatos arriba de la tabla (ej. "Listado Oficial" con título, ciclo, localidades, etc.).
 function findSheetWithGID(wb){
   for(var i=0;i<wb.SheetNames.length;i++){
-    var d=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]],{defval:''});
-    if(d.length && keyOf(d[0],['gid'])) return d;
+    var rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]],{header:1,defval:''});
+    for(var r=0;r<rows.length;r++){
+      var row=rows[r];
+      var gidIdx=row.findIndex(function(c){return String(c).trim().toLowerCase()==='gid';});
+      if(gidIdx<0) continue;
+      var headers=row.map(function(c){return String(c).trim();});
+      var data=[];
+      for(var d=r+1; d<rows.length; d++){
+        var raw=rows[d];
+        var gidVal=raw[gidIdx];
+        if(gidVal===''||gidVal==null) continue;   // salta filas de plantilla sin GID (aún vacías)
+        if(isNaN(parseFloat(gidVal))) continue;    // salta filas de leyenda/ejemplo con texto en la columna GID
+        var obj={};
+        headers.forEach(function(h,ci){ if(h) obj[h]=raw[ci]!==undefined?raw[ci]:''; });
+        data.push(obj);
+      }
+      if(data.length) return data;
+    }
   }
   return null;
 }
@@ -395,6 +419,16 @@ function gidKeyOf(row){
   if(direct) return direct;
   var keys=Object.keys(row);
   return keys.find(function(k){return k.trim().toLowerCase().replace(/\s+/g,'').indexOf('gid')===0;})||null;
+}
+/* Detección flexible de la columna de rol, incluyendo encabezados tipo "Roll (Hembra/Macho)" */
+function roleKeyOf(row){
+  var direct=keyOf(row,['hembra/macho','female/male','rol','role','plot_role','sexo','sex']);
+  if(direct) return direct;
+  var keys=Object.keys(row);
+  return keys.find(function(k){
+    var kl=k.toLowerCase();
+    return kl.indexOf('macho')>=0 || kl.indexOf('hembra')>=0 || kl.indexOf('female')>=0 || kl.indexOf('male')>=0;
+  })||null;
 }
 
 /* ═══════════ RECORDATORIO: último PLOT_CODE (compartido Self+BCR vía GitHub) ═══════════ */
@@ -788,6 +822,7 @@ var entryFromImport={};  // GID -> ENTRY_NO (del importlist)
 var entryAuto={};        // GID -> ENTRY_NO (autogenerado por 1a aparición)
 var uniqueEntries=[];    // [{gid, role, entry}]
 var disenoData=[];       // registros finales
+var bcrNFajasTotal=0;    // total de fajas del vivero BCR (incl. vacías por contrato), fijado al generar
 
 window.addEventListener('DOMContentLoaded',function(){
   updateInfoMB(); updatePlotPreview();
@@ -807,11 +842,17 @@ function updateInfoMB(){
   var R=+gv('pRowsPerFaja'), nF=+gv('pF'), nM=+gv('pM'), mbSz=nF+nM;
   if(!mbSz||!R) return;
   var mbxs=Math.floor(R/mbSz);
+  var manualFajas=parseInt(gv('pFajasManual'))||0;
   var extra='';
   if(seq.length){
     var nMB=Math.ceil(seq.length/mbSz);
-    var nFajas=mbxs>0?Math.ceil(nMB/mbxs):0;
-    extra=' · Cargado: <b>'+nMB+' MB</b> → <b>'+nFajas+' fajas</b> · <b>'+seq.length+' plots</b>';
+    var nFajasCalc=mbxs>0?Math.ceil(nMB/mbxs):0;
+    var nFajasFinal=Math.max(nFajasCalc,manualFajas);
+    extra=' · Cargado: <b>'+nMB+' MB</b> → <b>'+nFajasCalc+' fajas usadas</b>';
+    if(nFajasFinal>nFajasCalc) extra+=' + <b>'+(nFajasFinal-nFajasCalc)+' vacías</b> (contrato: '+nFajasFinal+' fajas)';
+    extra+=' · <b>'+seq.length+' plots</b>';
+  } else if(manualFajas>0){
+    extra=' · Contrato: <b>'+manualFajas+' fajas</b> (se ajustará si se necesitan más)';
   }
   ge('infoMB').innerHTML='Minibloque <b>'+nF+'F+'+nM+'M</b> ('+mbSz+') · <b>'+mbxs+'</b> MB/faja'+extra;
 }
@@ -824,7 +865,7 @@ function loadGermFile(input){
       var data=findSheetWithGID(wb);
       if(!data){showAlert('alertGerm','No se encontró una hoja con columna GID.','err');return;}
       var gidKey=keyOf(data[0],['gid']);
-      var rolKey=keyOf(data[0],['hembra/macho','female/male','rol','role','plot_role','sexo','sex']);
+      var rolKey=roleKeyOf(data[0]);
       if(!gidKey){showAlert('alertGerm','No se encontró columna GID.','err');return;}
 
       var patKey=Object.keys(data[0]).find(function(k){var kl=k.toLowerCase();return kl.indexOf('patr')>=0&&kl.indexOf('mini')>=0;});
@@ -917,7 +958,13 @@ function generarDiseno(){
   for(var i=0;i+mbSz<=seq.length;i+=mbSz) mbs.push(seq.slice(i,i+mbSz));
   var resto=seq.length%mbSz;
   if(resto) mbs.push(seq.slice(seq.length-resto));
-  var nMB=mbs.length, nFajas=Math.ceil(nMB/mbxs);
+  var nMB=mbs.length, nFajasCalc=Math.ceil(nMB/mbxs);
+
+  // Fajas totales del contrato: si el usuario indica un total mayor al necesario,
+  // se respeta ese total y las fajas extra quedan vacías (solo afectan el Mapa).
+  var manualFajas=parseInt(gv('pFajasManual'))||0;
+  var nFajas=Math.max(nFajasCalc, manualFajas);
+  bcrNFajasTotal=nFajas;
 
   var records=[];
   for(var f=1;f<=nFajas;f++){
@@ -954,7 +1001,9 @@ function generarDiseno(){
   disenoData=records;
   ge('btnExp').disabled=false;
   var lastCode=prefix+(start+records.length-1);
-  showAlert('alertGen','&#10003; Diseño generado: '+records.length+' plots en '+nFajas+' fajas.<br>'+
+  var extraFajas=nFajas-nFajasCalc;
+  var fajaNote=extraFajas>0?' ('+nFajasCalc+' con plots + '+extraFajas+' vacías por contrato)':'';
+  showAlert('alertGen','&#10003; Diseño generado: '+records.length+' plots en '+nFajas+' fajas'+fajaNote+'.<br>'+
     '<small>Último PLOT_CODE: <b>'+lastCode+'</b> · próximo vivero sugerido: <b>'+nextHundred(start+records.length-1)+'</b></small>','ok');
 
   ge('sTot').textContent=records.length;
@@ -981,6 +1030,7 @@ function renderMapa(records,R,nFajas){
     grid[r.COL+'_'+c]=r;
     if(c>maxCol) maxCol=c;
   });
+  if(!maxCol) maxCol=R;   // si no hay ningún plot (todas las fajas vacías), usa el ancho configurado
   var h='<div class="map-scroll"><table class="field-map"><thead>'+
         '<tr><th>Faja \\ Surco</th>';
   for(var c=1;c<=maxCol;c++) h+='<th>'+c+'</th>';
@@ -989,7 +1039,8 @@ function renderMapa(records,R,nFajas){
   h+='</tr></thead><tbody>';
   for(var f=nFajas;f>=1;f--){
     var arrow=(f%2===1)?'→':'←';
-    h+='<tr><td class="surco-lbl">Faja '+f+' '+arrow+'</td>';
+    var vacia=!records.some(function(r){return r.COL===f;});
+    h+='<tr><td class="surco-lbl">Faja '+f+' '+arrow+(vacia?' <span style="opacity:.6">(vacía)</span>':'')+'</td>';
     for(var c=1;c<=maxCol;c++){
       var r=grid[f+'_'+c];
       if(r){var cls=r.PLOT_ROLE==='Male'?'cell-m':'cell-f';
@@ -1003,7 +1054,7 @@ function renderMapa(records,R,nFajas){
   }
   h+='</tbody></table></div>'+
      '<div style="font-size:.7rem;color:#64748b;margin-top:8px">Vista física (como la acomoda BMS con «Serpentine»): cada celda muestra PLOT_CODE, GID, Role y Entry. '+
-     'Faja impar siembra → , faja par ← ; físicamente todas quedan F,F,F,M,M. Pasa el cursor por una celda para ver el PLOT_NO.</div>';
+     'Faja impar siembra → , faja par ← ; físicamente todas quedan F,F,F,M,M. Las fajas marcadas «(vacía)» se incluyen por el total del contrato pero no tienen plots. Pasa el cursor por una celda para ver el PLOT_NO.</div>';
   ge('tabMapa').innerHTML=h;
 }
 
@@ -1066,6 +1117,8 @@ function exportarXLSX(){
     grid[r.COL+'_'+c]=r;
     if(r.COL>nFajas) nFajas=r.COL;
   });
+  // Respeta el total de fajas del contrato aunque las últimas no tengan plots
+  nFajas=Math.max(nFajas, bcrNFajasTotal);
 
   var cols=['TRIAL_INSTANCE','ENTRY_NO','GID','ROW','COL','PLOT_NO','PLOT_CODE','PLOT_ROLE'];
 
