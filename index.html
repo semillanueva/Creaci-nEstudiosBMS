@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Generador de Diseño — BCR & Self</title>
+<title>Generador de Diseño — BCR, Self y Ensayos</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
@@ -92,6 +92,26 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
 .dtable td{padding:4px 9px;text-align:center;border-bottom:1px solid #f1f5f9}
 .dtable tr:hover td{background:#f8fafc}
 .rf{color:#9d174d;font-weight:700}.rm{color:#1e3a8a;font-weight:700}
+/* Modo Screening/Finca/Registro */
+.germ-summary-hdr.ens,.germ-row.ens{grid-template-columns:34px 62px 1fr 46px}
+.germ-des{font-size:.7rem;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.et-btn{font-size:.64rem;font-weight:800;border:1px solid #cbd5e1;border-radius:4px;padding:2px 0;cursor:pointer;font-family:inherit;width:34px}
+.et-T{background:#f1f5f9;color:#475569}
+.et-C{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.opt-table{border-collapse:collapse;width:100%;font-size:.7rem;margin-top:6px}
+.opt-table th{background:#f1f5f9;color:#475569;font-weight:700;padding:4px 5px;text-align:center;border-bottom:1px solid #e2e8f0}
+.opt-table td{padding:4px 5px;text-align:center;border-bottom:1px solid #f1f5f9;cursor:pointer}
+.opt-table tr:hover td{background:#eef2ff}
+.opt-table tr.sel td{background:#e0e7ff;font-weight:700;color:#3730a3}
+.opt-table .rec{font-size:.6rem;font-weight:800;color:#065f46;background:#d1fae5;border-radius:4px;padding:1px 5px;margin-left:3px}
+.blk-wrap{display:flex;flex-direction:column;gap:5px}
+.blk-row{display:flex;align-items:stretch;gap:6px}
+.blk-lbl{flex:0 0 96px;padding:2px 4px;font-size:.66rem;font-weight:700;color:#475569;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2}
+.blk-cells{display:flex;flex-wrap:wrap;gap:2px;flex:1}
+.blk-cells span{min-width:28px;padding:3px 2px;font-size:.64rem;font-weight:700;text-align:center;border-radius:3px;background:#e0e7ff;color:#3730a3}
+.blk-cells span.chk{background:#fef3c7;color:#92400e}
+.rep-sep{font-size:.68rem;font-weight:800;color:#6366f1;margin-top:6px}
+.ens-hint{font-size:.72rem;color:#475569;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;line-height:1.45;margin-top:6px}
 .empty{text-align:center;padding:50px 20px;color:#94a3b8}
 .empty .icon{font-size:2.5rem;margin-bottom:8px}
 @media(max-width:800px){.main{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}}
@@ -100,13 +120,14 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
 <body>
 <header>
   <h1>🌽 Generador de Diseño — Vivero</h1>
-  <p>Backcross (F,F,F,M,M · serpentina con volteo por rol) &nbsp;·&nbsp; Estudios Self (serpentina simple, sin rol) &nbsp;·&nbsp; Exporta XLSX para BMS</p>
+  <p>Backcross (F,F,F,M,M · serpentina con volteo por rol) &nbsp;·&nbsp; Estudios Self (serpentina simple, sin rol) &nbsp;·&nbsp; Screening / Finca / Registro (multi-localidad, solo Diseño + ImportList) &nbsp;·&nbsp; Exporta XLSX para BMS</p>
 </header>
 
 <!-- SELECTOR DE MODO -->
 <div class="modebar">
   <button class="modebtn active" id="mode-bcr"  onclick="setMode('bcr')">Vivero BCR (Backcross)</button>
   <button class="modebtn"        id="mode-self" onclick="setMode('self')">Estudios Self</button>
+  <button class="modebtn"        id="mode-ens"  onclick="setMode('ens')">Screening · Finca · Registro</button>
 </div>
 
 <!-- ══════════════════════════ MODO BCR (BACKCROSS) ══════════════════════════ -->
@@ -360,14 +381,159 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
   </div>
 </div>
 
+<!-- ══════════════════════ MODO SCREENING · FINCA · REGISTRO ══════════════════════ -->
+<div class="main" id="mainEns" style="display:none">
+  <!-- PANEL IZQUIERDO -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <div class="panel">
+      <div class="sec">1 · Listado de materiales</div>
+      <div class="upload-zone">
+        <input type="file" accept=".xlsx,.xls" onchange="ensLoadFile(this)"/>
+        <span class="uicon">📂</span>
+        <p>Cargar listado (GID, Designación, Tipo) o un ImportList existente</p>
+        <p style="font-size:.68rem;color:#94a3b8;margin-top:3px">Cada GID es una entrada (ENTRY_NO 1 a N en el orden del archivo). Testigos = ENTRY_TYPE C.</p>
+        <div class="fname" id="ensFname"></div>
+      </div>
+      <div id="ensAlertFile"></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec">2 · Parámetros del ensayo</div>
+      <div class="g2">
+        <div class="field">
+          <label>Tipo de estudio</label>
+          <select id="ensTipo" onchange="ensOnTipo()">
+            <option value="SCR">Screening</option>
+            <option value="FCA">Finca</option>
+            <option value="REG">Registro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Código del estudio</label>
+          <input id="ensNombre" type="text" value="SCR_2026B"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Tipo de diseño (como en BMS)</label>
+        <select id="ensDiseno" onchange="ensOnParams()">
+          <option value="RCBD">Diseño en Bloques Completos Aleatorizados</option>
+          <option value="RIBD" selected>Diseño en Bloques Incompletos Resolubles</option>
+          <option value="AUG">Diseño en Bloques Aleatorizados Aumentados</option>
+          <option value="LIST">Diseño en orden de lista de entradas</option>
+          <option value="RC" disabled>Diseño en Filas y Columnas — hacerlo en BMS</option>
+          <option value="PREP" disabled>Diseño P-rep — hacerlo en BMS</option>
+        </select>
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>Localidades (TRIAL_INSTANCE)</label>
+          <input id="ensLoc" type="number" value="1" min="1" max="200" oninput="ensOnParams()"/>
+          <small>cada una se aleatoriza aparte</small>
+        </div>
+        <div class="field" id="ensRepsWrap">
+          <label>Repeticiones (REP_NO)</label>
+          <input id="ensReps" type="number" value="2" min="1" max="20" oninput="ensOnParams()"/>
+          <small>las da el plan al inicio</small>
+        </div>
+      </div>
+
+      <!-- Bloques incompletos: tamaño de bloque + ayuda de terreno -->
+      <div id="ensBlockWrap">
+        <div class="field">
+          <label>Block Size (plots por bloque)</label>
+          <input id="ensK" type="number" value="" min="2" oninput="ensOnParams(true)"/>
+          <small>Debe dividir exacto al número de entradas. Toca una fila de la tabla para escogerlo.</small>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Largo del plot (m)</label><input id="ensPlotL" type="number" value="5" min="0.1" step="0.1" oninput="ensOnParams()"/><small>= ancho de la faja</small></div>
+          <div class="field"><label>Ancho del plot (m)</label><input id="ensPlotW" type="number" value="1.6" min="0.1" step="0.1" oninput="ensOnParams()"/><small>surcos × distancia</small></div>
+        </div>
+        <div id="ensOpts"></div>
+      </div>
+
+      <!-- Aumentado: número de bloques -->
+      <div id="ensAugWrap" style="display:none">
+        <div class="field">
+          <label>Número de bloques</label>
+          <input id="ensAugB" type="number" value="4" min="1" oninput="ensOnParams()"/>
+          <small>Cada bloque lleva <b>todos los testigos (C)</b> una vez; los tratamientos (T) se reparten una sola vez entre bloques.</small>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="field">
+          <label>PLOT_NO inicia en</label>
+          <input id="ensPlotStart" type="number" value="1" min="0"/>
+        </div>
+        <div class="field">
+          <label>PLOT_NO por localidad</label>
+          <select id="ensPlotMode">
+            <option value="restart" selected>Reinicia en cada una</option>
+            <option value="cont">Continuo entre todas</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Semilla de aleatorización</label>
+        <div style="display:flex;gap:6px">
+          <input id="ensSeed" type="number" value="" style="flex:1"/>
+          <button class="btn btn-primary" style="width:auto;padding:7px 12px" onclick="ensNewSeed();ensGenerar()" title="Nueva aleatorización">🎲</button>
+        </div>
+        <small>Con la misma semilla y parámetros sale exactamente el mismo diseño.</small>
+      </div>
+      <div id="ensInfo" class="info-badge"></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec">3 · Generar y exportar</div>
+      <div id="ensAlertGen"></div>
+      <button class="btn btn-primary" onclick="ensGenerar()">Generar diseño</button>
+      <button class="btn btn-green" id="ensBtnExp" onclick="ensExportar()" disabled style="margin-top:7px">⬇ Exportar ImportList + Diseño</button>
+    </div>
+
+    <div class="panel" id="ensSummaryPanel" style="display:none">
+      <div class="sec">Entradas cargadas</div>
+      <div class="germ-summary">
+        <div class="germ-summary-hdr ens"><span>#</span><span>GID</span><span>Designación</span><span>Tipo</span></div>
+        <div class="germ-summary-list" id="ensSummaryList" style="max-height:260px"></div>
+      </div>
+      <div style="font-size:.7rem;color:#94a3b8;margin-top:5px;text-align:right">Toca T/C para marcar o quitar testigo</div>
+    </div>
+  </div>
+
+  <!-- PANEL DERECHO -->
+  <div class="preview-wrap">
+    <div class="panel" style="flex:1">
+      <div id="ensStatsArea" style="display:none">
+        <div class="stats-grid">
+          <div class="stat"><div class="num" id="ensSEnt">—</div><div class="lbl">Entradas</div></div>
+          <div class="stat"><div class="num" id="ensSLoc">—</div><div class="lbl">Localidades</div></div>
+          <div class="stat"><div class="num" id="ensSPlotLoc">—</div><div class="lbl">Plots por localidad</div></div>
+          <div class="stat"><div class="num" id="ensSTot">—</div><div class="lbl">Filas del diseño</div></div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="ensShowTab('blk')">Bloques</button>
+        <button class="tab" onclick="ensShowTab('tabla')">Diseño</button>
+        <button class="tab" onclick="ensShowTab('imp')">ImportList</button>
+      </div>
+      <div id="ensTabBlk"><div class="empty"><div class="icon">🧱</div><p>Carga el listado y presiona "Generar diseño"</p></div></div>
+      <div id="ensTabTabla" style="display:none"><div class="empty"><div class="icon">📋</div><p>El diseño aparecerá aquí</p></div></div>
+      <div id="ensTabImp" style="display:none"><div class="empty"><div class="icon">🧾</div><p>El ImportList aparecerá aquí</p></div></div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ═══════════════════════════ SELECTOR DE MODO ═══════════════════════════ */
 function setMode(m){
-  var bcr = m==='bcr';
-  ge('mainBCR').style.display  = bcr?'grid':'none';
-  ge('mainSelf').style.display = bcr?'none':'grid';
-  ge('mode-bcr').classList.toggle('active', bcr);
-  ge('mode-self').classList.toggle('active', !bcr);
+  ge('mainBCR').style.display  = m==='bcr' ?'grid':'none';
+  ge('mainSelf').style.display = m==='self'?'grid':'none';
+  ge('mainEns').style.display  = m==='ens' ?'grid':'none';
+  ge('mode-bcr').classList.toggle('active', m==='bcr');
+  ge('mode-self').classList.toggle('active', m==='self');
+  ge('mode-ens').classList.toggle('active', m==='ens');
 }
 
 /* ═════════════════════ HELPERS COMPARTIDOS ═════════════════════ */
@@ -1407,6 +1573,348 @@ function selfShowTab(name){
     btn.classList.toggle('active',['mapa','tabla'][i]===name);
   });
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MODO SCREENING · FINCA · REGISTRO
+   Sin mapa: solo ImportList + Diseño (TRIAL_INSTANCE, REP_NO, BLOCK_NO, PLOT_NO, ENTRY_NO).
+   Cada localidad (TRIAL_INSTANCE) tiene su propia aleatorización.
+   ═══════════════════════════════════════════════════════════════════════ */
+var ensEntries=[];   // [{entry, gid, des, type:'T'|'C'}]
+var ensData=[];      // filas del diseño
+var ensCols=[];      // columnas del diseño según tipo
+var ensMeta=null;    // resumen del último diseño generado
+var ensUserK=false;  // el usuario escribió el block size a mano
+
+// PRNG con semilla (mulberry32): mismo número → mismo diseño
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function shuffle(arr,rnd){for(var i=arr.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1));var t=arr[i];arr[i]=arr[j];arr[j]=t;}return arr;}
+function ensNewSeed(){ ge('ensSeed').value=Math.floor(Math.random()*900000)+100000; }
+
+function ensOnTipo(){
+  var t=gv('ensTipo'), n=gv('ensNombre');
+  ge('ensNombre').value=n.replace(/^(SCR|FCA|REG)/,t);
+  // Screening suele ir en Bloques Incompletos; Finca/Registro igual por defecto (se puede cambiar)
+}
+
+function ensLoadFile(input){
+  var file=input.files[0]; if(!file) return; input.value='';
+  ge('ensFname').textContent=file.name;
+  readWB(file,function(wb){
+    try{
+      // Preferir hoja "Observation" si es un ImportList de BMS
+      var data=null;
+      if(wb.SheetNames.indexOf('Observation')>=0){
+        var tmp=XLSX.utils.sheet_to_json(wb.Sheets['Observation'],{defval:''});
+        if(tmp.length && gidKeyOf(tmp[0])) data=tmp;
+      }
+      if(!data) data=findSheetWithGID(wb);
+      if(!data||!data.length){showAlert('ensAlertFile','No se encontró una hoja con columna GID.','err');return;}
+      var gk=gidKeyOf(data[0]);
+      var dk=keyOf(data[0],['designation','designación','designacion','nombre','material','genotipo','variedad','hibrido','híbrido','pedigree','cruza','cross']);
+      var tk=keyOf(data[0],['entry_type','tipo de entrada','tipo entrada','tipo','type']);
+      var ck=keyOf(data[0],['testigo','check','es testigo','control']);
+      var seen={}, dup=[], out=[], nC=0;
+      data.forEach(function(r){
+        var g=r[gk]; if(g===''||g==null||isNaN(+g)) return;
+        g=+g;
+        if(seen[g]){dup.push(g);return;}
+        seen[g]=1;
+        var type='T';
+        if(tk){ var v=String(r[tk]).trim().toUpperCase(); if(v==='C'||v.indexOf('CHECK')===0||v.indexOf('TESTIGO')===0) type='C'; }
+        else if(ck){ var v2=String(r[ck]).trim().toUpperCase(); if(['SI','SÍ','X','1','YES','Y','C','TRUE','VERDADERO'].indexOf(v2)>=0) type='C'; }
+        if(type==='C') nC++;
+        out.push({gid:g,des:dk?String(r[dk]).trim():'',type:type});
+      });
+      if(!out.length){showAlert('ensAlertFile','El archivo no tiene filas con GID numérico.','err');return;}
+      out.forEach(function(e,i){e.entry=i+1;});
+      ensEntries=out; ensData=[]; ge('ensBtnExp').disabled=true;
+      var msg='&#10003; '+out.length+' entradas ('+nC+' testigos C · '+(out.length-nC)+' tratamientos T)'+
+        '<br><small style="opacity:.8">Columna GID: "'+gk+'"'+(dk?' · Designación: "'+dk+'"':' · sin columna de designación')+
+        (tk?' · Tipo: "'+tk+'"':(ck?' · Testigo: "'+ck+'"':' · sin columna de tipo (todos T, márcalos abajo)'))+'</small>';
+      if(dup.length) msg+='<br><b>Ojo:</b> '+dup.length+' GID repetido(s) se ignoraron: '+dup.slice(0,8).join(', ')+(dup.length>8?'…':'');
+      showAlert('ensAlertFile',msg,dup.length?'warn':'ok');
+      ensUserK=false; ge('ensK').value='';
+      ensRenderSummary(); ensOnParams(); ensRenderImp();
+    }catch(err){showAlert('ensAlertFile','Error: '+err.message,'err');}
+  });
+}
+
+function ensRenderSummary(){
+  var list=ge('ensSummaryList'); list.innerHTML='';
+  ensEntries.forEach(function(e,i){
+    var d=document.createElement('div'); d.className='germ-row ens';
+    d.innerHTML='<span class="germ-no">'+e.entry+'</span><span class="germ-gid">'+e.gid+'</span>'+
+      '<span class="germ-des" title="'+(e.des||'').replace(/"/g,'&quot;')+'">'+(e.des||'—')+'</span>'+
+      '<button class="et-btn et-'+e.type+'" onclick="ensToggleType('+i+')">'+e.type+'</button>';
+    list.appendChild(d);
+  });
+  ge('ensSummaryPanel').style.display=ensEntries.length?'block':'none';
+}
+function ensToggleType(i){
+  ensEntries[i].type=ensEntries[i].type==='C'?'T':'C';
+  ensRenderSummary(); ensRenderImp(); ensOnParams();
+  if(ensData.length){ensData=[];ge('ensBtnExp').disabled=true;showAlert('ensAlertGen','Cambiaste testigos: vuelve a generar el diseño.','warn');}
+}
+
+// Opciones de Block Size: divisores de N. Se asume 1 bloque = 1 faja.
+function ensBlockOptions(N,reps,L,W){
+  var opts=[];
+  for(var k=2;k<N;k++){
+    if(N%k) continue;
+    var s=N/k, fajas=s*reps;
+    var frente=k*W, fondo=fajas*L;
+    var ratio=Math.max(frente,fondo)/Math.min(frente,fondo);
+    opts.push({k:k,s:s,fajas:fajas,frente:frente,fondo:fondo,ratio:ratio});
+  }
+  var best=null;
+  opts.forEach(function(o){ if(!best||o.ratio<best.ratio) best=o; });
+  if(best) best.rec=true;
+  return opts;
+}
+
+function ensOnParams(fromK){
+  if(fromK) ensUserK=true;
+  var d=gv('ensDiseno');
+  ge('ensBlockWrap').style.display=d==='RIBD'?'block':'none';
+  ge('ensAugWrap').style.display=d==='AUG'?'block':'none';
+  ge('ensRepsWrap').style.display=d==='AUG'?'none':'block';
+  var N=ensEntries.length, reps=+gv('ensReps')||1, nLoc=+gv('ensLoc')||1;
+  var info='';
+  if(!N){ ge('ensInfo').innerHTML='Carga el listado para ver opciones.'; ge('ensOpts').innerHTML=''; return; }
+
+  if(d==='RIBD'){
+    var L=+gv('ensPlotL')||5, W=+gv('ensPlotW')||1.6;
+    var opts=ensBlockOptions(N,reps,L,W);
+    if(!opts.length){
+      ge('ensOpts').innerHTML='<div class="alert alert-warn" style="margin-top:6px">'+N+' entradas no se puede dividir en bloques iguales (es número primo). Agrega o quita una entrada (ej. un filler), o usa Bloques Completos.</div>';
+    } else {
+      if(!ensUserK || !ge('ensK').value){ var r=opts.find(function(o){return o.rec;}); ge('ensK').value=r.k; }
+      var kSel=+gv('ensK');
+      var h='<div class="ens-hint">Terreno por localidad, asumiendo <b>1 bloque = 1 faja</b>. Frente = Block Size × ancho del plot; fondo = fajas × largo del plot. Se recomienda la opción <b>más cuadrada</b>.</div>'+
+        '<table class="opt-table"><thead><tr><th>Block Size</th><th>Bloques/rep</th><th>Fajas</th><th>Frente × Fondo</th></tr></thead><tbody>';
+      opts.forEach(function(o){
+        h+='<tr class="'+(o.k===kSel?'sel':'')+'" onclick="ge(\'ensK\').value='+o.k+';ensOnParams(true)">'+
+           '<td>'+o.k+(o.rec?'<span class="rec">más cuadrado</span>':'')+'</td><td>'+o.s+'</td><td>'+o.fajas+'</td>'+
+           '<td>'+o.frente.toFixed(1)+' × '+o.fondo.toFixed(1)+' m</td></tr>';
+      });
+      h+='</tbody></table>';
+      ge('ensOpts').innerHTML=h;
+    }
+    var k=+gv('ensK');
+    if(k && N%k===0 && k<N) info=N+' entradas · '+reps+' rep × '+(N/k)+' bloques de <b>'+k+'</b> = <b>'+(N*reps)+' plots</b>/localidad';
+    else info='<span style="color:#991b1b">Block Size '+(k||'—')+' no divide a '+N+' entradas.</span>';
+  } else if(d==='RCBD'){
+    info=N+' entradas × '+reps+' rep = <b>'+(N*reps)+' plots</b>/localidad (cada rep es un bloque completo)';
+  } else if(d==='AUG'){
+    var nC=ensEntries.filter(function(e){return e.type==='C';}).length, nT=N-nC, b=+gv('ensAugB')||1;
+    if(!nC) info='<span style="color:#991b1b">Marca al menos un testigo (C) en la lista de entradas.</span>';
+    else {
+      var mx=Math.ceil(nT/b), mn=Math.floor(nT/b);
+      info=b+' bloques · '+nC+' testigos por bloque + '+(mn===mx?mx:mn+'–'+mx)+' tratamientos = bloques de '+(mn===mx?(mx+nC):(mn+nC)+'–'+(mx+nC))+
+           ' · <b>'+(nT+nC*b)+' plots</b>/localidad';
+    }
+  } else if(d==='LIST'){
+    info=N+' entradas × '+reps+' rep en el orden de la lista (sin aleatorizar) = <b>'+(N*reps)+' plots</b>/localidad';
+  }
+  ge('ensInfo').innerHTML=info+(nLoc>1?' · '+nLoc+' localidades':'');
+}
+
+/* Bloques incompletos resolubles: cada rep es una permutación completa cortada en bloques de k.
+   Para reps 2+ se prueban muchas permutaciones y se escoge la que menos repite pares
+   de entradas que ya coincidieron en un mismo bloque (como hace un alfa-látice). */
+function ensRepIncompleto(N,k,conc,rnd,isFirst){
+  var base=[]; for(var i=1;i<=N;i++) base.push(i);
+  if(isFirst) return shuffle(base.slice(),rnd);
+  var best=null,bestScore=Infinity,tries=N<=60?400:(N<=200?150:60);
+  for(var t=0;t<tries;t++){
+    var p=shuffle(base.slice(),rnd), score=0;
+    for(var b=0;b<N;b+=k){
+      for(var x=b;x<b+k;x++){ var row=conc[p[x]]; for(var y=x+1;y<b+k;y++){ var c=row[p[y]]; score+=c*c; } }
+      if(score>=bestScore) break;
+    }
+    if(score<bestScore){bestScore=score;best=p; if(score===0) break;}
+  }
+  return best;
+}
+
+function ensGenerar(){
+  var N=ensEntries.length;
+  if(!N){showAlert('ensAlertGen','Carga primero el listado de materiales (paso 1).','err');return;}
+  var d=gv('ensDiseno'), nLoc=+gv('ensLoc'), reps=+gv('ensReps');
+  if(!nLoc||nLoc<1){showAlert('ensAlertGen','Indica cuántas localidades.','err');return;}
+  if(d!=='AUG' && (!reps||reps<1)){showAlert('ensAlertGen','Indica cuántas repeticiones.','err');return;}
+  if(!gv('ensSeed')) ensNewSeed();
+  var seed=parseInt(gv('ensSeed'))||1;
+  var rnd=mulberry32(seed);
+  var pStart=parseInt(gv('ensPlotStart')); if(isNaN(pStart)) pStart=1;
+  var cont=gv('ensPlotMode')==='cont';
+  var rows=[], plot=pStart, k=0, nb=0, plotsLoc=0;
+
+  if(d==='RIBD'){
+    k=+gv('ensK');
+    if(!k||N%k!==0||k>=N){showAlert('ensAlertGen','El Block Size ('+(k||'vacío')+') debe dividir exacto a '+N+' entradas y ser menor que '+N+'.','err');return;}
+    nb=N/k; ensCols=['TRIAL_INSTANCE','REP_NO','BLOCK_NO','PLOT_NO','ENTRY_NO'];
+    for(var l=1;l<=nLoc;l++){
+      if(!cont) plot=pStart;
+      var conc=[]; for(var i=0;i<=N;i++){conc.push(new Array(N+1).fill(0));}
+      for(var r=1;r<=reps;r++){
+        var p=ensRepIncompleto(N,k,conc,rnd,r===1);
+        // aleatorizar el orden de los bloques dentro de la rep
+        var blocks=[]; for(var b=0;b<nb;b++) blocks.push(p.slice(b*k,(b+1)*k));
+        shuffle(blocks,rnd);
+        blocks.forEach(function(bl,bi){
+          for(var x=0;x<bl.length;x++) for(var y=x+1;y<bl.length;y++){conc[bl[x]][bl[y]]++;conc[bl[y]][bl[x]]++;}
+          bl.forEach(function(e){ rows.push({TRIAL_INSTANCE:l,REP_NO:r,BLOCK_NO:bi+1,PLOT_NO:plot++,ENTRY_NO:e}); });
+        });
+      }
+    }
+    plotsLoc=N*reps;
+  } else if(d==='RCBD'){
+    ensCols=['TRIAL_INSTANCE','REP_NO','PLOT_NO','ENTRY_NO'];
+    for(var l2=1;l2<=nLoc;l2++){
+      if(!cont) plot=pStart;
+      for(var r2=1;r2<=reps;r2++){
+        var p2=[]; for(var i2=1;i2<=N;i2++) p2.push(i2);
+        shuffle(p2,rnd).forEach(function(e){ rows.push({TRIAL_INSTANCE:l2,REP_NO:r2,PLOT_NO:plot++,ENTRY_NO:e}); });
+      }
+    }
+    plotsLoc=N*reps;
+  } else if(d==='AUG'){
+    var checks=ensEntries.filter(function(e){return e.type==='C';}).map(function(e){return e.entry;});
+    var tests =ensEntries.filter(function(e){return e.type!=='C';}).map(function(e){return e.entry;});
+    nb=+gv('ensAugB');
+    if(!checks.length){showAlert('ensAlertGen','El diseño aumentado necesita testigos: marca al menos una entrada como C.','err');return;}
+    if(!nb||nb<1){showAlert('ensAlertGen','Indica el número de bloques.','err');return;}
+    if(nb>tests.length&&tests.length){showAlert('ensAlertGen','Hay más bloques ('+nb+') que tratamientos ('+tests.length+').','err');return;}
+    ensCols=['TRIAL_INSTANCE','BLOCK_NO','PLOT_NO','ENTRY_NO'];
+    for(var l3=1;l3<=nLoc;l3++){
+      if(!cont) plot=pStart;
+      var tt=shuffle(tests.slice(),rnd);
+      for(var b3=0;b3<nb;b3++){
+        // reparto equilibrado: los primeros (nT mod b) bloques llevan uno más
+        var base3=Math.floor(tests.length/nb), extra=tests.length%nb;
+        var from=b3*base3+Math.min(b3,extra), to=from+base3+(b3<extra?1:0);
+        var blk=shuffle(checks.concat(tt.slice(from,to)),rnd);
+        blk.forEach(function(e){ rows.push({TRIAL_INSTANCE:l3,BLOCK_NO:b3+1,PLOT_NO:plot++,ENTRY_NO:e}); });
+      }
+    }
+    plotsLoc=tests.length+checks.length*nb;
+  } else if(d==='LIST'){
+    ensCols=['TRIAL_INSTANCE','REP_NO','PLOT_NO','ENTRY_NO'];
+    for(var l4=1;l4<=nLoc;l4++){
+      if(!cont) plot=pStart;
+      for(var r4=1;r4<=reps;r4++) ensEntries.forEach(function(e){ rows.push({TRIAL_INSTANCE:l4,REP_NO:r4,PLOT_NO:plot++,ENTRY_NO:e.entry}); });
+    }
+    plotsLoc=N*reps;
+  } else {
+    showAlert('ensAlertGen','Este tipo de diseño se genera directamente en BMS.','err');return;
+  }
+
+  ensData=rows;
+  ensMeta={d:d,N:N,nLoc:nLoc,reps:d==='AUG'?1:reps,k:k,nb:nb,plotsLoc:plotsLoc,seed:seed};
+  ge('ensBtnExp').disabled=false;
+  var dName=ge('ensDiseno').options[ge('ensDiseno').selectedIndex].text;
+  showAlert('ensAlertGen','&#10003; '+dName+': '+rows.length+' filas ('+nLoc+' localidad'+(nLoc>1?'es':'')+' × '+plotsLoc+' plots).'+
+    '<br><small>'+(d==='LIST'?'Sin aleatorizar: mismo orden de la lista en cada rep y localidad.':'Semilla <b>'+seed+'</b> · cada localidad con su propia aleatorización.')+'</small>','ok');
+
+  ge('ensSEnt').textContent=N;
+  ge('ensSLoc').textContent=nLoc;
+  ge('ensSPlotLoc').textContent=plotsLoc;
+  ge('ensSTot').textContent=rows.length;
+  ge('ensStatsArea').style.display='block';
+  ensRenderBlk(1); ensRenderTabla(); ensRenderImp();
+  ensShowTab('blk');
+}
+
+function ensRenderBlk(loc){
+  if(!ensData.length) return;
+  loc=+loc||1;
+  var isC={}; ensEntries.forEach(function(e){ if(e.type==='C') isC[e.entry]=1; });
+  var sel='<div class="field" style="max-width:220px"><label>Ver localidad (TRIAL_INSTANCE)</label><select onchange="ensRenderBlk(this.value)">';
+  for(var l=1;l<=ensMeta.nLoc;l++) sel+='<option value="'+l+'"'+(l===loc?' selected':'')+'>Localidad '+l+'</option>';
+  sel+='</select></div>';
+  var groups={}, order=[];
+  ensData.forEach(function(r){
+    if(r.TRIAL_INSTANCE!==loc) return;
+    var rep=r.REP_NO||1, blk=r.BLOCK_NO||0, key=rep+'_'+blk;
+    if(!groups[key]){groups[key]={rep:rep,blk:blk,items:[]};order.push(key);}
+    groups[key].items.push(r);
+  });
+  var h=sel+'<div class="blk-wrap">', lastRep=null;
+  order.forEach(function(key){
+    var g=groups[key];
+    if(ensMeta.d!=='AUG' && g.rep!==lastRep){ h+='<div class="rep-sep">Repetición '+g.rep+'</div>'; lastRep=g.rep; }
+    var lbl=ensMeta.d==='AUG'?'Bloque '+g.blk:(g.blk?'Bloque '+g.blk:'Rep '+g.rep);
+    lbl+='<br><span style="font-weight:400;color:#94a3b8">plots '+g.items[0].PLOT_NO+'–'+g.items[g.items.length-1].PLOT_NO+'</span>';
+    h+='<div class="blk-row"><div class="blk-lbl">'+lbl+'</div><div class="blk-cells">';
+    g.items.forEach(function(r){ h+='<span class="'+(isC[r.ENTRY_NO]?'chk':'')+'" title="PLOT_NO '+r.PLOT_NO+'">'+r.ENTRY_NO+'</span>'; });
+    h+='</div></div>';
+  });
+  h+='</div><div style="font-size:.7rem;color:#64748b;margin-top:10px">Cada número es el ENTRY_NO en orden de PLOT_NO. '+
+     '<span style="background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:3px;font-weight:700">amarillo</span> = testigo (C). '+
+     'Pasa el cursor para ver el PLOT_NO.</div>';
+  ge('ensTabBlk').innerHTML=h;
+}
+
+function ensRenderTabla(){
+  var h='<div class="tbl-scroll"><table class="dtable"><thead><tr>';
+  ensCols.forEach(function(c){h+='<th>'+c+'</th>';}); h+='</tr></thead><tbody>';
+  var parts=[];
+  ensData.forEach(function(r){ parts.push('<tr>'+ensCols.map(function(c){return '<td>'+r[c]+'</td>';}).join('')+'</tr>'); });
+  h+=parts.join('')+'</tbody></table></div>';
+  ge('ensTabTabla').innerHTML=h;
+}
+
+function ensRenderImp(){
+  if(!ensEntries.length) return;
+  var h='<div class="tbl-scroll"><table class="dtable"><thead><tr><th>ENTRY_NO</th><th>GID</th><th>DESIGNATION</th><th>ENTRY_TYPE</th></tr></thead><tbody>';
+  ensEntries.forEach(function(e){
+    h+='<tr><td>'+e.entry+'</td><td>'+e.gid+'</td><td style="text-align:left">'+(e.des||'')+'</td><td'+(e.type==='C'?' style="color:#92400e;font-weight:700"':'')+'>'+e.type+'</td></tr>';
+  });
+  ge('ensTabImp').innerHTML=h+'</tbody></table></div>';
+}
+
+function ensShowTab(name){
+  ge('ensTabBlk').style.display  =name==='blk'  ?'block':'none';
+  ge('ensTabTabla').style.display=name==='tabla'?'block':'none';
+  ge('ensTabImp').style.display  =name==='imp'  ?'block':'none';
+  ge('mainEns').querySelectorAll('.tabs .tab').forEach(function(btn,i){
+    btn.classList.toggle('active',['blk','tabla','imp'][i]===name);
+  });
+}
+
+// ImportList con DESIGNATION y ENTRY_TYPE (formato del ImportList de BMS)
+function ensBuildImportlist(){
+  var wb=new ExcelJS.Workbook(); wb.creator='Generador de Diseño'; wb.created=new Date();
+  var ws=wb.addWorksheet('Observation',{views:[{state:'frozen',ySplit:1}]});
+  ws.addRow(['ENTRY_NO','GID','GUID','DESIGNATION','ENTRY_CODE','ENTRY_TYPE']);
+  ensEntries.forEach(function(e){ ws.addRow([e.entry,e.gid,'',e.des||'','',e.type]); });
+  [10,10,36,28,14,12].forEach(function(w,i){ws.getColumn(i+1).width=w;});
+  styleHeaderRow(ws,1);
+  ws.autoFilter={from:{row:1,column:1},to:{row:1,column:6}};
+  ws.pageSetup={orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0};
+  var wd=wb.addWorksheet('Entry Details');
+  var det=entryDetailsRows(); det[4][7]='T;C;X;D;S;M;F';
+  det.forEach(function(r){ wd.addRow(r); });
+  [14,10,42,18,22,14,11,26,13].forEach(function(w,i){wd.getColumn(i+1).width=w;});
+  styleHeaderRow(wd,1);
+  return wb;
+}
+
+function ensExportar(){
+  if(!ensData.length) return;
+  var nombre=gv('ensNombre').trim()||'ENSAYO';
+  var wbImp=ensBuildImportlist();
+  var wbDis=new ExcelJS.Workbook(); wbDis.creator='Generador de Diseño'; wbDis.created=new Date();
+  addDisenoSheet(wbDis,ensCols,ensData,ensCols.map(function(c){return c==='TRIAL_INSTANCE'?16:11;}));
+  downloadWorkbooks([
+    {wb:wbImp, filename:'01_ImportList_'+nombre+'.xlsx'},
+    {wb:wbDis, filename:'02_Diseno_'+nombre+'.xlsx'}
+  ]);
+  showAlert('ensAlertGen','&#10003; Exportados 2 archivos: ImportList ('+ensEntries.length+' entradas) y Diseño ('+ensData.length+' filas, semilla '+ensMeta.seed+').','ok');
+}
+
+ensNewSeed(); ensOnParams();
 </script>
 </body>
 </html>
