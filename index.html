@@ -446,9 +446,10 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
           <small>Debe dividir exacto al número de entradas. Toca una fila de la tabla para escogerlo.</small>
         </div>
         <div class="g2">
-          <div class="field"><label>Largo del plot (m)</label><input id="ensPlotL" type="number" value="5" min="0.1" step="0.1" oninput="ensOnParams()"/><small>= ancho de la faja</small></div>
-          <div class="field"><label>Ancho del plot (m)</label><input id="ensPlotW" type="number" value="1.6" min="0.1" step="0.1" oninput="ensOnParams()"/><small>surcos × distancia</small></div>
+          <div class="field"><label>Surcos por plot</label><input id="ensSurcos" type="number" value="2" min="1" max="20" oninput="ensOnParams()"/><small>2 ó 4 según la localidad</small></div>
+          <div class="field"><label>Distancia entre surcos (m)</label><input id="ensDist" type="number" value="0.8" min="0.1" step="0.05" oninput="ensOnParams()"/><small>ancho del plot = surcos × distancia</small></div>
         </div>
+        <div class="field"><label>Largo del plot (m)</label><input id="ensPlotL" type="number" value="5" min="0.1" step="0.1" oninput="ensOnParams()"/><small>= ancho de cada faja</small></div>
         <div id="ensOpts"></div>
       </div>
 
@@ -1683,19 +1684,19 @@ function ensOnParams(fromK){
   if(!N){ ge('ensInfo').innerHTML='Carga el listado para ver opciones.'; ge('ensOpts').innerHTML=''; return; }
 
   if(d==='RIBD'){
-    var L=+gv('ensPlotL')||5, W=+gv('ensPlotW')||1.6;
+    var L=+gv('ensPlotL')||5, nS=+gv('ensSurcos')||2, W=nS*(+gv('ensDist')||0.8);
     var opts=ensBlockOptions(N,reps,L,W);
     if(!opts.length){
       ge('ensOpts').innerHTML='<div class="alert alert-warn" style="margin-top:6px">'+N+' entradas no se puede dividir en bloques iguales (es número primo). Agrega o quita una entrada (ej. un filler), o usa Bloques Completos.</div>';
     } else {
       if(!ensUserK || !ge('ensK').value){ var r=opts.find(function(o){return o.rec;}); ge('ensK').value=r.k; }
       var kSel=+gv('ensK');
-      var h='<div class="ens-hint">Terreno por localidad, asumiendo <b>1 bloque = 1 faja</b>. Frente = Block Size × ancho del plot; fondo = fajas × largo del plot. Se recomienda la opción <b>más cuadrada</b>.</div>'+
-        '<table class="opt-table"><thead><tr><th>Block Size</th><th>Bloques/rep</th><th>Fajas</th><th>Frente × Fondo</th></tr></thead><tbody>';
+      var h='<div class="ens-hint">Terreno por localidad, asumiendo <b>1 bloque = 1 faja</b>. Plot de '+nS+' surcos = '+W.toFixed(2)+' m de ancho. Frente = Block Size × ancho del plot; fondo = fajas × largo del plot. Se recomienda la opción <b>más cuadrada</b>. Si las localidades llevan distintos surcos por plot, revisa con el número que más se use.</div>'+
+        '<table class="opt-table"><thead><tr><th>Block Size</th><th>Bloques/rep</th><th>Fajas</th><th>Frente × Fondo</th><th>Surcos/faja</th></tr></thead><tbody>';
       opts.forEach(function(o){
         h+='<tr class="'+(o.k===kSel?'sel':'')+'" onclick="ge(\'ensK\').value='+o.k+';ensOnParams(true)">'+
            '<td>'+o.k+(o.rec?'<span class="rec">más cuadrado</span>':'')+'</td><td>'+o.s+'</td><td>'+o.fajas+'</td>'+
-           '<td>'+o.frente.toFixed(1)+' × '+o.fondo.toFixed(1)+' m</td></tr>';
+           '<td>'+o.frente.toFixed(1)+' × '+o.fondo.toFixed(1)+' m</td><td>'+(o.k*nS)+'</td></tr>';
       });
       h+='</tbody></table>';
       ge('ensOpts').innerHTML=h;
