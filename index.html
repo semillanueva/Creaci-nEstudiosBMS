@@ -1161,7 +1161,12 @@ function generarDiseno(){
         fems.forEach(function(r){visit.push(r);});
       }
     }
-    visit.forEach(function(r){r.PLOT_NO=plotNo++; r.PLOT_CODE=prefix+(codeNo++);});
+    // ROW = surco físico en orden de siembra (igual que el Mapa):
+    // faja impar 1,2,3…  ·  faja par R,R-1,R-2… hasta 1, siempre ordenado
+    visit.forEach(function(r,idx){
+      r.PLOT_NO=plotNo++; r.PLOT_CODE=prefix+(codeNo++);
+      r.ROW=(f%2===1)?(idx+1):(R-idx);
+    });
   }
 
   records.sort(function(a,b){return a.PLOT_NO-b.PLOT_NO;});
