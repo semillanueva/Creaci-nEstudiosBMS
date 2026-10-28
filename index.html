@@ -17,7 +17,10 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
 .modebtn{background:transparent;border:none;color:#c7d2fe;font-family:inherit;font-size:.86rem;font-weight:700;padding:11px 22px;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
 .modebtn:hover{color:#fff;background:rgba(255,255,255,.06)}
 .modebtn.active{color:#fff;border-bottom-color:#a5b4fc;background:rgba(255,255,255,.10)}
-.main{max-width:1160px;margin:0 auto;padding:20px 14px;display:grid;grid-template-columns:330px 1fr;gap:18px}
+.main{max-width:1800px;margin:0 auto;padding:20px 18px;display:grid;grid-template-columns:380px 1fr;gap:18px}
+#mainEns{grid-template-columns:480px 1fr;align-items:start}
+#mainEns .preview-wrap{position:sticky;top:10px}
+@media(max-width:800px){#mainEns{grid-template-columns:1fr}#mainEns .preview-wrap{position:static}}
 .panel{background:white;border-radius:14px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .sec{font-size:.74rem;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
 .field{margin-bottom:12px}
@@ -86,14 +89,35 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
 .cell-m{background:#dbeafe;color:#1e3a8a}
 .cell-s{background:#dcfce7;color:#166534}
 .cell-e{background:#f8fafc;color:#e2e8f0}
-.tbl-scroll{overflow:auto;max-height:440px}
+.tbl-scroll{overflow:auto;max-height:calc(100vh - 260px);min-height:440px}
 .dtable{border-collapse:collapse;font-size:.73rem;width:100%}
 .dtable th{background:#1e293b;color:white;padding:6px 9px;text-align:center;position:sticky;top:0;font-size:.7rem;white-space:nowrap}
 .dtable td{padding:4px 9px;text-align:center;border-bottom:1px solid #f1f5f9}
 .dtable tr:hover td{background:#f8fafc}
 .rf{color:#9d174d;font-weight:700}.rm{color:#1e3a8a;font-weight:700}
 /* Modo Screening/Finca/Registro */
-.germ-summary-hdr.ens,.germ-row.ens{grid-template-columns:34px 62px 1fr 46px}
+.germ-summary-hdr.ens,.germ-row.ens{grid-template-columns:30px 58px 1fr 38px 50px;gap:6px}
+.germ-row.ens .germ-des{white-space:normal;overflow:visible;word-break:break-word;line-height:1.25}
+.field-map td.ev-cell{min-width:96px;max-width:130px}
+.mc-des{font-size:.6rem;font-weight:600;line-height:1.15;white-space:normal;word-break:break-word;max-width:124px;margin:1px auto 0}
+.et-L{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd}
+.nest-in{width:46px;border:1px solid #e2e8f0;border-radius:4px;padding:2px 4px;font-size:.66rem;font-weight:800;text-align:center;text-transform:uppercase;font-family:inherit}
+.loc-table{border-collapse:collapse;width:100%;font-size:.68rem}
+.loc-table th{background:#f1f5f9;color:#475569;font-weight:700;padding:3px 3px;text-align:center;border-bottom:1px solid #e2e8f0;position:sticky;top:0;line-height:1.1}
+.loc-table td{padding:2px 2px;text-align:center;border-bottom:1px solid #f1f5f9;white-space:nowrap}
+.loc-table input{border:1px solid #e2e8f0;border-radius:4px;padding:2px 3px;font-size:.68rem;font-family:inherit;text-align:center}
+.apply-row{display:flex;gap:4px;align-items:flex-end;flex-wrap:wrap}
+.apply-row label{display:flex;flex-direction:column;font-size:.62rem;color:#64748b;font-weight:600}
+.apply-row input{width:52px;border:1px solid #e2e8f0;border-radius:5px;padding:3px 4px;font-size:.72rem;font-family:inherit}
+.apply-row button{background:#4338ca;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit}
+.chk-line{display:flex;gap:6px;align-items:flex-start;font-size:.72rem;color:#475569;margin-top:8px;line-height:1.35;cursor:pointer}
+.chk-line input{margin-top:2px}
+.ev-r1{background:#e0e7ff;color:#3730a3}.ev-r2{background:#dcfce7;color:#166534}
+.ev-chk{background:#fef3c7;color:#92400e}.ev-line{background:#ede9fe;color:#5b21b6}
+.ev-fill{background:#e2e8f0;color:#64748b}
+.blk-cells span.ev-r1,.blk-cells span.ev-r2,.blk-cells span.ev-chk,.blk-cells span.ev-line,.blk-cells span.ev-fill{}
+.ev-legend{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.ev-legend span{font-size:.64rem;font-weight:700;padding:2px 7px;border-radius:4px}
 .germ-des{font-size:.7rem;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .et-btn{font-size:.64rem;font-weight:800;border:1px solid #cbd5e1;border-radius:4px;padding:2px 0;cursor:pointer;font-family:inherit;width:34px}
 .et-T{background:#f1f5f9;color:#475569}
@@ -120,14 +144,14 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
 <body>
 <header>
   <h1>🌽 Generador de Diseño — Vivero</h1>
-  <p>Backcross (F,F,F,M,M · serpentina con volteo por rol) &nbsp;·&nbsp; Estudios Self (serpentina simple, sin rol) &nbsp;·&nbsp; Screening / Finca / Registro (multi-localidad, solo Diseño + ImportList) &nbsp;·&nbsp; Exporta XLSX para BMS</p>
+  <p>Backcross (F,F,F,M,M · serpentina con volteo por rol) &nbsp;·&nbsp; Estudios Self (serpentina simple, sin rol) &nbsp;·&nbsp; Evaluación: Screening · Finca · Registro · Parent Testing (multi-localidad, nesting y filler) &nbsp;·&nbsp; Exporta XLSX para BMS</p>
 </header>
 
 <!-- SELECTOR DE MODO -->
 <div class="modebar">
   <button class="modebtn active" id="mode-bcr"  onclick="setMode('bcr')">Vivero BCR (Backcross)</button>
   <button class="modebtn"        id="mode-self" onclick="setMode('self')">Estudios Self</button>
-  <button class="modebtn"        id="mode-ens"  onclick="setMode('ens')">Screening · Finca · Registro</button>
+  <button class="modebtn"        id="mode-ens"  onclick="setMode('ens')">Evaluación</button>
 </div>
 
 <!-- ══════════════════════════ MODO BCR (BACKCROSS) ══════════════════════════ -->
@@ -381,7 +405,7 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
   </div>
 </div>
 
-<!-- ══════════════════════ MODO SCREENING · FINCA · REGISTRO ══════════════════════ -->
+<!-- ══════════════ MODO EVALUACIÓN (Screening · Finca · Registro · Parent Testing) ══════════════ -->
 <div class="main" id="mainEns" style="display:none">
   <!-- PANEL IZQUIERDO -->
   <div style="display:flex;flex-direction:column;gap:14px">
@@ -391,22 +415,23 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
       <div class="upload-zone">
         <input type="file" accept=".xlsx,.xls" onchange="ensLoadFile(this)"/>
         <span class="uicon">📂</span>
-        <p>Cargar listado (GID, Designación, Tipo) o un ImportList existente</p>
-        <p style="font-size:.68rem;color:#94a3b8;margin-top:3px">Cada GID es una entrada (ENTRY_NO 1 a N en el orden del archivo). Testigos = ENTRY_TYPE C.</p>
+        <p>Cargar listado (GID, Designación, Tipo, Nest) o un ImportList existente</p>
+        <p style="font-size:.68rem;color:#94a3b8;margin-top:3px">Cada GID es una entrada (ENTRY_NO 1 a N en el orden del archivo). Híbrido = Test (T) · Testigo = Control (C) · Línea = solo Parent Testing.</p>
         <div class="fname" id="ensFname"></div>
       </div>
       <div id="ensAlertFile"></div>
     </div>
 
     <div class="panel">
-      <div class="sec">2 · Parámetros del ensayo</div>
+      <div class="sec">2 · Estudio</div>
       <div class="g2">
         <div class="field">
-          <label>Tipo de estudio</label>
+          <label>Subdivisión</label>
           <select id="ensTipo" onchange="ensOnTipo()">
             <option value="SCR">Screening</option>
             <option value="FCA">Finca</option>
             <option value="REG">Registro</option>
+            <option value="PT">Parent Testing</option>
           </select>
         </div>
         <div class="field">
@@ -414,68 +439,94 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
           <input id="ensNombre" type="text" value="SCR_2026B"/>
         </div>
       </div>
-      <div class="field">
+      <div class="field" id="ensDisenoWrap">
         <label>Tipo de diseño (como en BMS)</label>
-        <select id="ensDiseno" onchange="ensOnParams()">
-          <option value="RCBD">Diseño en Bloques Completos Aleatorizados</option>
-          <option value="RIBD" selected>Diseño en Bloques Incompletos Resolubles</option>
-          <option value="AUG">Diseño en Bloques Aleatorizados Aumentados</option>
+        <select id="ensDiseno" onchange="ensOnParams();ensStale()">
+          <option value="RCBD" selected>Diseño en Bloques Completos Aleatorizados (bloques al azar)</option>
           <option value="LIST">Diseño en orden de lista de entradas</option>
+          <option value="RIBD">Diseño en Bloques Incompletos Resolubles</option>
+          <option value="AUG">Diseño en Bloques Aleatorizados Aumentados</option>
           <option value="RC" disabled>Diseño en Filas y Columnas — hacerlo en BMS</option>
           <option value="PREP" disabled>Diseño P-rep — hacerlo en BMS</option>
         </select>
+        <small>Nesting (materiales juntos) se aplica en bloques al azar.</small>
       </div>
-      <div class="g2">
-        <div class="field">
-          <label>Localidades (TRIAL_INSTANCE)</label>
-          <input id="ensLoc" type="number" value="1" min="1" max="200" oninput="ensOnParams()"/>
-          <small>cada una se aleatoriza aparte</small>
-        </div>
-        <div class="field" id="ensRepsWrap">
-          <label>Repeticiones (REP_NO)</label>
-          <input id="ensReps" type="number" value="2" min="1" max="20" oninput="ensOnParams()"/>
-          <small>las da el plan al inicio</small>
-        </div>
+      <div id="ensPTNote" class="ens-hint" style="display:none;margin-top:0;margin-bottom:10px">
+        <b>Parent Testing (nesting P.T.):</b> Rep 1 = primero todos los <b>híbridos</b> y luego las <b>líneas</b>, cada grupo en el orden de la lista.
+        Rep 2 = serpentina: primero <b>líneas</b> y luego <b>híbridos</b>, cada grupo al azar (distinto a la rep 1). Rep 3 vuelve a híbridos → líneas al azar, y así alternando.
+        Marca las líneas con <b>L</b> en la lista de entradas.
       </div>
-
-      <!-- Bloques incompletos: tamaño de bloque + ayuda de terreno -->
-      <div id="ensBlockWrap">
+      <div id="ensBlockWrap" style="display:none">
         <div class="field">
           <label>Block Size (plots por bloque)</label>
-          <input id="ensK" type="number" value="" min="2" oninput="ensOnParams(true)"/>
-          <small>Debe dividir exacto al número de entradas. Toca una fila de la tabla para escogerlo.</small>
+          <input id="ensK" type="number" value="" min="2" oninput="ensOnParams(true);ensStale()"/>
+          <small>Debe dividir exacto al número de entradas. Toca una opción abajo.</small>
         </div>
-        <div class="g2">
-          <div class="field"><label>Surcos por plot</label><input id="ensSurcos" type="number" value="2" min="1" max="20" oninput="ensOnParams()"/><small>2 ó 4 según la localidad</small></div>
-          <div class="field"><label>Distancia entre surcos (m)</label><input id="ensDist" type="number" value="0.8" min="0.1" step="0.05" oninput="ensOnParams()"/><small>ancho del plot = surcos × distancia</small></div>
-        </div>
-        <div class="field"><label>Largo del plot (m)</label><input id="ensPlotL" type="number" value="5" min="0.1" step="0.1" oninput="ensOnParams()"/><small>= ancho de cada faja</small></div>
-        <div id="ensOpts"></div>
+        <div id="ensKOpts"></div>
       </div>
-
-      <!-- Aumentado: número de bloques -->
       <div id="ensAugWrap" style="display:none">
         <div class="field">
           <label>Número de bloques</label>
-          <input id="ensAugB" type="number" value="4" min="1" oninput="ensOnParams()"/>
-          <small>Cada bloque lleva <b>todos los testigos (C)</b> una vez; los tratamientos (T) se reparten una sola vez entre bloques.</small>
+          <input id="ensAugB" type="number" value="4" min="1" oninput="ensOnParams();ensStale()"/>
+          <small>Cada bloque lleva <b>todos los testigos (C)</b>; los híbridos (T) se reparten una sola vez.</small>
         </div>
       </div>
+    </div>
 
+    <div class="panel">
+      <div class="sec">3 · Localidades y terreno</div>
+      <div class="field">
+        <label>Número de localidades (TRIAL_INSTANCE)</label>
+        <input id="ensLoc" type="number" value="1" min="1" max="200" oninput="ensResizeLocs()"/>
+        <small>Cada localidad se aleatoriza aparte y puede tener sus propias reps, surcos y fajas.</small>
+      </div>
+      <div class="ens-hint" style="margin-top:0;margin-bottom:8px">
+        <b>Surcos/faja</b> y <b>fajas</b> los dan los evaluadores. Plots por faja = surcos por faja ÷ surcos por plot.
+        Si sobra espacio se completa con <b>filler</b>; si no alcanza, te aviso cuántos plots faltan. Déjalos vacíos si aún no los tienes.
+      </div>
+      <div style="font-size:.7rem;font-weight:700;color:#475569;margin-bottom:4px">Llenar todas las localidades con:</div>
+      <div class="apply-row">
+        <label>Reps<input id="ensAllReps" type="number" min="1" value="2"/></label>
+        <label>Surc/plot<input id="ensAllSurcos" type="number" min="1" value="2"/></label>
+        <label>Surc/faja<input id="ensAllSF" type="number" min="1" value=""/></label>
+        <label>Fajas<input id="ensAllFajas" type="number" min="1" value=""/></label>
+        <button onclick="ensApplyAll()">Aplicar</button>
+      </div>
+      <div id="ensLocTable" style="margin-top:8px"></div>
+      <label class="chk-line"><input type="checkbox" id="ensRepFaja" onchange="ensUpdateLocCalc();ensStale()"/> Cada repetición empieza en faja nueva (el final de la faja se completa con filler)</label>
+      <div id="ensInfo" class="info-badge"></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec">4 · Filler (relleno)</div>
+      <div class="g2">
+        <div class="field"><label>GID del filler</label><input id="ensFillGid" type="number" value="" placeholder="ej. GID de F5" oninput="ensUpdateLocCalc();ensRenderImp();ensStale()"/><small>Si ya está en la lista, se usa su ENTRY_NO</small></div>
+        <div class="field"><label>Designación</label><input id="ensFillDes" type="text" value="" placeholder="ej. F5" oninput="ensRenderImp()"/><small>solo si es material nuevo</small></div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>ENTRY_TYPE del filler (si es material nuevo)</label>
+        <input id="ensFillType" type="text" value="F" maxlength="4" style="width:80px" oninput="ensRenderImp()"/>
+        <small>Confirma en BMS el código que usan para filler.</small>
+      </div>
+      <div id="ensFillInfo"></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec">5 · Numeración y semilla</div>
       <div class="g2">
         <div class="field">
           <label>PLOT_NO inicia en</label>
-          <input id="ensPlotStart" type="number" value="1" min="0"/>
+          <input id="ensPlotStart" type="number" value="1" min="0" onchange="ensStale()"/>
         </div>
         <div class="field">
           <label>PLOT_NO por localidad</label>
-          <select id="ensPlotMode">
+          <select id="ensPlotMode" onchange="ensStale()">
             <option value="restart" selected>Reinicia en cada una</option>
             <option value="cont">Continuo entre todas</option>
           </select>
         </div>
       </div>
-      <div class="field" style="margin-bottom:0">
+      <div class="field">
         <label>Semilla de aleatorización</label>
         <div style="display:flex;gap:6px">
           <input id="ensSeed" type="number" value="" style="flex:1"/>
@@ -483,11 +534,11 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
         </div>
         <small>Con la misma semilla y parámetros sale exactamente el mismo diseño.</small>
       </div>
-      <div id="ensInfo" class="info-badge"></div>
+      <label class="chk-line" style="margin-top:0"><input type="checkbox" id="ensRowCol" onchange="ensStale()"/> Incluir ROW y COL en el Diseño (COL = faja, ROW = posición del plot en la faja, serpentina)</label>
     </div>
 
     <div class="panel">
-      <div class="sec">3 · Generar y exportar</div>
+      <div class="sec">6 · Generar y exportar</div>
       <div id="ensAlertGen"></div>
       <button class="btn btn-primary" onclick="ensGenerar()">Generar diseño</button>
       <button class="btn btn-green" id="ensBtnExp" onclick="ensExportar()" disabled style="margin-top:7px">⬇ Exportar ImportList + Diseño</button>
@@ -496,10 +547,13 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
     <div class="panel" id="ensSummaryPanel" style="display:none">
       <div class="sec">Entradas cargadas</div>
       <div class="germ-summary">
-        <div class="germ-summary-hdr ens"><span>#</span><span>GID</span><span>Designación</span><span>Tipo</span></div>
-        <div class="germ-summary-list" id="ensSummaryList" style="max-height:260px"></div>
+        <div class="germ-summary-hdr ens"><span>#</span><span>GID</span><span>Designación</span><span>Tipo</span><span>Nest</span></div>
+        <div class="germ-summary-list" id="ensSummaryList" style="max-height:620px"></div>
       </div>
-      <div style="font-size:.7rem;color:#94a3b8;margin-top:5px;text-align:right">Toca T/C para marcar o quitar testigo</div>
+      <div style="font-size:.7rem;color:#64748b;margin-top:6px;line-height:1.45">
+        <b>Tipo:</b> toca para cambiar <b>H</b> híbrido (T) → <b>C</b> testigo<span id="ensLHint" style="display:none"> → <b>L</b> línea</span>.<br>
+        <b>Nest:</b> misma letra = quedan juntos en cada rep, pero el grupo cae al azar en el campo (ej. F11 y F13 → <b>A</b>).
+      </div>
     </div>
   </div>
 
@@ -510,12 +564,12 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
         <div class="stats-grid">
           <div class="stat"><div class="num" id="ensSEnt">—</div><div class="lbl">Entradas</div></div>
           <div class="stat"><div class="num" id="ensSLoc">—</div><div class="lbl">Localidades</div></div>
-          <div class="stat"><div class="num" id="ensSPlotLoc">—</div><div class="lbl">Plots por localidad</div></div>
-          <div class="stat"><div class="num" id="ensSTot">—</div><div class="lbl">Filas del diseño</div></div>
+          <div class="stat"><div class="num" id="ensSTot">—</div><div class="lbl">Plots totales</div></div>
+          <div class="stat"><div class="num" id="ensSFill">—</div><div class="lbl">Fillers</div></div>
         </div>
       </div>
       <div class="tabs">
-        <button class="tab active" onclick="ensShowTab('blk')">Bloques</button>
+        <button class="tab active" onclick="ensShowTab('blk')">Campo</button>
         <button class="tab" onclick="ensShowTab('tabla')">Diseño</button>
         <button class="tab" onclick="ensShowTab('imp')">ImportList</button>
       </div>
@@ -1581,33 +1635,149 @@ function selfShowTab(name){
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   MODO SCREENING · FINCA · REGISTRO
-   Sin mapa: solo ImportList + Diseño (TRIAL_INSTANCE, REP_NO, BLOCK_NO, PLOT_NO, ENTRY_NO).
-   Cada localidad (TRIAL_INSTANCE) tiene su propia aleatorización.
+   MODO EVALUACIÓN — Screening · Finca · Registro · Parent Testing
+   · Cada localidad (TRIAL_INSTANCE) con su propia aleatorización, reps, surcos y fajas.
+   · Híbrido = Test (T) · Testigo = Control (C) · Línea (L) solo para Parent Testing.
+   · Nesting: entradas con la misma etiqueta quedan juntas en cada rep; el grupo cae al azar.
+   · Filler: completa la capacidad (fajas × plots por faja) que dan los evaluadores.
    ═══════════════════════════════════════════════════════════════════════ */
-var ensEntries=[];   // [{entry, gid, des, type:'T'|'C'}]
+var ensEntries=[];   // [{entry, gid, des, type:'T'|'C', role:'H'|'L', nest:''}]
+var ensLocs=[];      // [{name, reps, surcos, sf, fajas, edited}]
 var ensData=[];      // filas del diseño
-var ensCols=[];      // columnas del diseño según tipo
-var ensMeta=null;    // resumen del último diseño generado
-var ensUserK=false;  // el usuario escribió el block size a mano
+var ensCols=[];      // columnas del diseño
+var ensMeta=null;    // resumen del último diseño
+var ENS_DEF={SCR:{reps:2,surcos:2},FCA:{reps:2,surcos:4},REG:{reps:3,surcos:4},PT:{reps:2,surcos:4}};
 
 // PRNG con semilla (mulberry32): mismo número → mismo diseño
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function shuffle(arr,rnd){for(var i=arr.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1));var t=arr[i];arr[i]=arr[j];arr[j]=t;}return arr;}
 function ensNewSeed(){ ge('ensSeed').value=Math.floor(Math.random()*900000)+100000; }
+function ensIsPT(){ return gv('ensTipo')==='PT'; }
+function ensDesign(){ return ensIsPT()?'PT':gv('ensDiseno'); }
+function ensIsC(e){ return e.type==='C'; }
+function ensStale(){
+  if(ensData.length){ ensData=[]; ge('ensBtnExp').disabled=true;
+    showAlert('ensAlertGen','Cambiaste parámetros: vuelve a generar el diseño.','warn'); }
+}
+function escH(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function nestColor(n){ var h=0; for(var i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))%360; return 'hsl('+h+',70%,42%)'; }
 
 function ensOnTipo(){
-  var t=gv('ensTipo'), n=gv('ensNombre');
-  ge('ensNombre').value=n.replace(/^(SCR|FCA|REG)/,t);
-  // Screening suele ir en Bloques Incompletos; Finca/Registro igual por defecto (se puede cambiar)
+  var t=gv('ensTipo');
+  ge('ensNombre').value=gv('ensNombre').replace(/^(SCR|FCA|REG|PT)/,t);
+  var d=ENS_DEF[t];
+  ensLocs.forEach(function(l){ if(!l.edited){ l.reps=d.reps; l.surcos=d.surcos; } });
+  ge('ensAllReps').value=d.reps; ge('ensAllSurcos').value=d.surcos;
+  ensRenderLocs(); ensRenderSummary(); ensOnParams(); ensStale();
 }
 
+/* ─────────── Localidades ─────────── */
+function ensResizeLocs(){
+  var n=Math.max(1,Math.min(200,parseInt(gv('ensLoc'))||1)), d=ENS_DEF[gv('ensTipo')];
+  while(ensLocs.length<n){
+    var last=ensLocs[ensLocs.length-1];
+    ensLocs.push(last?{name:'',reps:last.reps,surcos:last.surcos,sf:last.sf,fajas:last.fajas,edited:last.edited}
+                     :{name:'',reps:d.reps,surcos:d.surcos,sf:'',fajas:'',edited:false});
+  }
+  ensLocs.length=n;
+  ensRenderLocs(); ensStale();
+}
+function ensRenderLocs(){
+  var h='<div class="tbl-scroll" style="max-height:330px"><table class="loc-table"><thead><tr>'+
+        '<th>Loc</th><th>Nombre</th><th>Reps</th><th>Surc/<br>plot</th><th>Surc/<br>faja</th><th>Fajas</th>'+
+        '<th>Plots/<br>faja</th><th>Nece-<br>sita</th><th>Cabe</th><th>Filler</th></tr></thead><tbody>';
+  ensLocs.forEach(function(l,i){
+    function inp(f,w,t){
+      return '<input type="'+(t||'number')+'" min="1" style="width:'+w+'px" value="'+escH(l[f])+'" oninput="ensSetLoc('+i+',\''+f+'\',this.value)"/>';
+    }
+    h+='<tr><td><b>'+(i+1)+'</b></td><td>'+inp('name',74,'text')+'</td><td>'+inp('reps',36)+'</td><td>'+inp('surcos',36)+
+       '</td><td>'+inp('sf',44)+'</td><td>'+inp('fajas',38)+'</td>'+
+       '<td id="ensLP'+i+'">—</td><td id="ensLN'+i+'">—</td><td id="ensLC'+i+'">—</td><td id="ensLF'+i+'">—</td></tr>';
+  });
+  ge('ensLocTable').innerHTML=h+'</tbody></table></div>';
+  ensUpdateLocCalc();
+}
+function ensSetLoc(i,f,v){
+  var l=ensLocs[i];
+  l[f]=(f==='name')?v:(v===''?'':parseInt(v));
+  if(f==='reps'||f==='surcos') l.edited=true;
+  ensUpdateLocCalc(); ensStale();
+}
+function ensApplyAll(){
+  var r=gv('ensAllReps'), s=gv('ensAllSurcos'), sf=gv('ensAllSF'), fj=gv('ensAllFajas');
+  ensLocs.forEach(function(l){
+    if(r!==''){ l.reps=+r; l.edited=true; }
+    if(s!==''){ l.surcos=+s; l.edited=true; }
+    if(sf!=='') l.sf=+sf;
+    if(fj!=='') l.fajas=+fj;
+  });
+  ensRenderLocs(); ensStale();
+}
+function ensP(l){ var s=+l.surcos, sf=+l.sf; return (s>0&&sf>0)?Math.floor(sf/s):0; }
+function ensCap(l){ var P=ensP(l), f=+l.fajas; return (P&&f>0)?P*f:0; }
+function ensRepSizes(l){
+  var d=ensDesign(), N=ensEntries.length;
+  if(d==='AUG'){ var nC=ensEntries.filter(ensIsC).length; return [(N-nC)+nC*(+gv('ensAugB')||1)]; }
+  var r=+l.reps||0, out=[]; for(var i=0;i<r;i++) out.push(N); return out;
+}
+function ensReal(l){ return ensRepSizes(l).reduce(function(a,b){return a+b;},0); }
+function ensNeed(l){
+  var P=ensP(l), rf=ge('ensRepFaja').checked&&P, tot=0;
+  ensRepSizes(l).forEach(function(s){ tot+=rf?Math.ceil(s/P)*P:s; });
+  return tot;
+}
+function ensUpdateLocCalc(){
+  var N=ensEntries.length, anyFill=false, short=[], totPlots=0, totFill=0;
+  ensLocs.forEach(function(l,i){
+    var eP=ge('ensLP'+i); if(!eP) return;
+    var P=ensP(l), cap=ensCap(l), need=N?ensNeed(l):0, real=N?ensReal(l):0;
+    eP.textContent=P||'—';
+    ge('ensLN'+i).textContent=N?need:'—';
+    ge('ensLC'+i).textContent=cap||'—';
+    var f=ge('ensLF'+i);
+    if(!N){ f.textContent='—'; return; }
+    if(cap && need>cap){ f.innerHTML='<span style="color:#991b1b;font-weight:800">faltan '+(need-cap)+'</span>'; short.push(i+1); return; }
+    var fill=(cap||need)-real;
+    totPlots+=(cap||need); totFill+=fill;
+    if(fill>0) anyFill=true;
+    f.innerHTML=fill>0?'<b style="color:#334155">'+fill+'</b>':'0';
+  });
+  var info='';
+  if(!N) info='Carga el listado para ver cuántos plots necesita cada localidad.';
+  else {
+    info=N+' entradas · <b>'+totPlots+' plots</b> en '+ensLocs.length+' localidad'+(ensLocs.length>1?'es':'')+
+         (totFill?' · <b>'+totFill+'</b> fillers':'');
+    if(short.length) info+='<br><span style="color:#991b1b"><b>No alcanza</b> el terreno en loc '+short.join(', ')+': pide más fajas o surcos a los evaluadores.</span>';
+  }
+  ge('ensInfo').innerHTML=info;
+  var fe=ensFillerEntry(), fi='';
+  if(anyFill && !fe) fi='<div class="alert alert-warn" style="margin-top:8px">Hay localidades que necesitan filler: indica el GID del filler.</div>';
+  else if(fe) fi='<div class="ens-hint">'+(fe.isNew?'Filler nuevo: se agrega al ImportList como ENTRY_NO <b>'+fe.entry+'</b> ('+escH(fe.type)+').'
+                                              :'Filler = entrada existente ENTRY_NO <b>'+fe.entry+'</b>'+(fe.des?' ('+escH(fe.des)+')':'')+'. No se agrega fila nueva al ImportList.')+'</div>';
+  ge('ensFillInfo').innerHTML=fi;
+}
+
+/* ─────────── Filler ─────────── */
+function ensFillerEntry(){
+  var g=parseInt(gv('ensFillGid')); if(isNaN(g)) return null;
+  var ex=ensEntries.find(function(e){return e.gid===g;});
+  if(ex) return {entry:ex.entry,gid:g,des:ex.des,type:ex.type,isNew:false};
+  return {entry:ensEntries.length+1,gid:g,des:gv('ensFillDes').trim()||'FILLER',
+          type:(gv('ensFillType').trim().toUpperCase()||'F'),isNew:true};
+}
+function ensAllEntries(){
+  var out=ensEntries.map(function(e){return {entry:e.entry,gid:e.gid,des:e.des,et:e.type==='C'?'C':'T',role:e.role,filler:false};});
+  var f=ensFillerEntry();
+  if(f && f.isNew) out.push({entry:f.entry,gid:f.gid,des:f.des,et:f.type,role:'H',filler:true});
+  return out;
+}
+
+/* ─────────── Carga del listado ─────────── */
 function ensLoadFile(input){
   var file=input.files[0]; if(!file) return; input.value='';
   ge('ensFname').textContent=file.name;
   readWB(file,function(wb){
     try{
-      // Preferir hoja "Observation" si es un ImportList de BMS
       var data=null;
       if(wb.SheetNames.indexOf('Observation')>=0){
         var tmp=XLSX.utils.sheet_to_json(wb.Sheets['Observation'],{defval:''});
@@ -1619,27 +1789,38 @@ function ensLoadFile(input){
       var dk=keyOf(data[0],['designation','designación','designacion','nombre','material','genotipo','variedad','hibrido','híbrido','pedigree','cruza','cross']);
       var tk=keyOf(data[0],['entry_type','tipo de entrada','tipo entrada','tipo','type']);
       var ck=keyOf(data[0],['testigo','check','es testigo','control']);
-      var seen={}, dup=[], out=[], nC=0;
+      var rk=keyOf(data[0],['rol','role','categoria','categoría','hibrido/linea','híbrido/línea','linea','línea']);
+      var nk=keyOf(data[0],['nest','nesting','grupo','group','nido','grupo nest','grupo nesting']);
+      var seen={}, dup=[], out=[], nC=0, nL=0, nN=0;
+      function isLine(v){ v=String(v).trim().toUpperCase(); return v==='L'||v.indexOf('LIN')===0||v.indexOf('LÍN')===0||v.indexOf('LINE')===0||v.indexOf('PARENT')===0||v.indexOf('PADRE')===0||v.indexOf('PROGENITOR')===0; }
       data.forEach(function(r){
         var g=r[gk]; if(g===''||g==null||isNaN(+g)) return;
         g=+g;
         if(seen[g]){dup.push(g);return;}
         seen[g]=1;
-        var type='T';
-        if(tk){ var v=String(r[tk]).trim().toUpperCase(); if(v==='C'||v.indexOf('CHECK')===0||v.indexOf('TESTIGO')===0) type='C'; }
-        else if(ck){ var v2=String(r[ck]).trim().toUpperCase(); if(['SI','SÍ','X','1','YES','Y','C','TRUE','VERDADERO'].indexOf(v2)>=0) type='C'; }
-        if(type==='C') nC++;
-        out.push({gid:g,des:dk?String(r[dk]).trim():'',type:type});
+        var type='T', role='H';
+        if(tk){ var v=String(r[tk]).trim().toUpperCase();
+          if(v==='C'||v.indexOf('CHECK')===0||v.indexOf('TESTIGO')===0||v.indexOf('CONTROL')===0) type='C';
+          else if(isLine(v)) role='L'; }
+        if(ck && type!=='C'){ var v2=String(r[ck]).trim().toUpperCase(); if(['SI','SÍ','X','1','YES','Y','C','TRUE','VERDADERO'].indexOf(v2)>=0) type='C'; }
+        if(rk && rk!==tk && role!=='L' && isLine(r[rk])) role='L';
+        if(type==='C') role='H';
+        var nest=nk?String(r[nk]).trim().toUpperCase():'';
+        if(type==='C') nC++; if(role==='L') nL++; if(nest) nN++;
+        out.push({gid:g,des:dk?String(r[dk]).trim():'',type:type,role:role,nest:nest});
       });
       if(!out.length){showAlert('ensAlertFile','El archivo no tiene filas con GID numérico.','err');return;}
       out.forEach(function(e,i){e.entry=i+1;});
       ensEntries=out; ensData=[]; ge('ensBtnExp').disabled=true;
-      var msg='&#10003; '+out.length+' entradas ('+nC+' testigos C · '+(out.length-nC)+' tratamientos T)'+
-        '<br><small style="opacity:.8">Columna GID: "'+gk+'"'+(dk?' · Designación: "'+dk+'"':' · sin columna de designación')+
-        (tk?' · Tipo: "'+tk+'"':(ck?' · Testigo: "'+ck+'"':' · sin columna de tipo (todos T, márcalos abajo)'))+'</small>';
+      var msg='&#10003; '+out.length+' entradas ('+(out.length-nC-nL)+' híbridos T · '+nC+' testigos C'+(nL?' · '+nL+' líneas':'')+')'+
+        (nN?' · '+nN+' con nest':'')+
+        '<br><small style="opacity:.8">Columna GID: "'+gk+'"'+(dk?' · Designación: "'+dk+'"':' · sin designación')+
+        (tk?' · Tipo: "'+tk+'"':(ck?' · Testigo: "'+ck+'"':' · sin columna de tipo (todos H, márcalos abajo)'))+
+        (nk?' · Nest: "'+nk+'"':'')+'</small>';
+      if(nL && !ensIsPT()) msg+='<br><small>Hay líneas marcadas: el orden híbridos/líneas solo se usa en <b>Parent Testing</b>.</small>';
       if(dup.length) msg+='<br><b>Ojo:</b> '+dup.length+' GID repetido(s) se ignoraron: '+dup.slice(0,8).join(', ')+(dup.length>8?'…':'');
       showAlert('ensAlertFile',msg,dup.length?'warn':'ok');
-      ensUserK=false; ge('ensK').value='';
+      ge('ensK').value='';
       ensRenderSummary(); ensOnParams(); ensRenderImp();
     }catch(err){showAlert('ensAlertFile','Error: '+err.message,'err');}
   });
@@ -1647,87 +1828,102 @@ function ensLoadFile(input){
 
 function ensRenderSummary(){
   var list=ge('ensSummaryList'); list.innerHTML='';
+  var pt=ensIsPT();
+  ge('ensLHint').style.display=pt?'inline':'none';
   ensEntries.forEach(function(e,i){
     var d=document.createElement('div'); d.className='germ-row ens';
+    var code=e.type==='C'?'C':(e.role==='L'?'L':'H');
+    var tip=code==='C'?'Testigo (C)':(code==='L'?'Línea (T)':'Híbrido (T)');
     d.innerHTML='<span class="germ-no">'+e.entry+'</span><span class="germ-gid">'+e.gid+'</span>'+
-      '<span class="germ-des" title="'+(e.des||'').replace(/"/g,'&quot;')+'">'+(e.des||'—')+'</span>'+
-      '<button class="et-btn et-'+e.type+'" onclick="ensToggleType('+i+')">'+e.type+'</button>';
+      '<span class="germ-des" title="'+escH(e.des)+'">'+(escH(e.des)||'—')+'</span>'+
+      '<button class="et-btn et-'+(code==='H'?'T':code)+'" title="'+tip+'" onclick="ensToggleType('+i+')">'+code+'</button>'+
+      '<input class="nest-in" value="'+escH(e.nest)+'" placeholder="—" maxlength="6" onchange="ensSetNest('+i+',this.value)"'+
+      (e.nest?' style="border-color:'+nestColor(e.nest)+';color:'+nestColor(e.nest)+'"':'')+'/>';
     list.appendChild(d);
   });
   ge('ensSummaryPanel').style.display=ensEntries.length?'block':'none';
 }
 function ensToggleType(i){
-  ensEntries[i].type=ensEntries[i].type==='C'?'T':'C';
-  ensRenderSummary(); ensRenderImp(); ensOnParams();
-  if(ensData.length){ensData=[];ge('ensBtnExp').disabled=true;showAlert('ensAlertGen','Cambiaste testigos: vuelve a generar el diseño.','warn');}
+  var e=ensEntries[i], pt=ensIsPT();
+  var code=e.type==='C'?'C':(e.role==='L'?'L':'H');
+  var next=code==='H'?'C':(code==='C'?(pt?'L':'H'):'H');
+  e.type=next==='C'?'C':'T'; e.role=next==='L'?'L':'H';
+  ensRenderSummary(); ensRenderImp(); ensOnParams(); ensStale();
+}
+function ensSetNest(i,v){
+  ensEntries[i].nest=String(v||'').trim().toUpperCase();
+  ensRenderSummary(); ensStale();
 }
 
-// Opciones de Block Size: divisores de N. Se asume 1 bloque = 1 faja.
-function ensBlockOptions(N,reps,L,W){
-  var opts=[];
-  for(var k=2;k<N;k++){
-    if(N%k) continue;
-    var s=N/k, fajas=s*reps;
-    var frente=k*W, fondo=fajas*L;
-    var ratio=Math.max(frente,fondo)/Math.min(frente,fondo);
-    opts.push({k:k,s:s,fajas:fajas,frente:frente,fondo:fondo,ratio:ratio});
-  }
-  var best=null;
-  opts.forEach(function(o){ if(!best||o.ratio<best.ratio) best=o; });
-  if(best) best.rec=true;
-  return opts;
-}
-
+/* ─────────── Parámetros ─────────── */
 function ensOnParams(fromK){
-  if(fromK) ensUserK=true;
-  var d=gv('ensDiseno');
+  var pt=ensIsPT(), d=ensDesign(), N=ensEntries.length;
+  ge('ensDisenoWrap').style.display=pt?'none':'block';
+  ge('ensPTNote').style.display=pt?'block':'none';
   ge('ensBlockWrap').style.display=d==='RIBD'?'block':'none';
   ge('ensAugWrap').style.display=d==='AUG'?'block':'none';
-  ge('ensRepsWrap').style.display=d==='AUG'?'none':'block';
-  var N=ensEntries.length, reps=+gv('ensReps')||1, nLoc=+gv('ensLoc')||1;
-  var info='';
-  if(!N){ ge('ensInfo').innerHTML='Carga el listado para ver opciones.'; ge('ensOpts').innerHTML=''; return; }
-
   if(d==='RIBD'){
-    var L=+gv('ensPlotL')||5, nS=+gv('ensSurcos')||2, W=nS*(+gv('ensDist')||0.8);
-    var opts=ensBlockOptions(N,reps,L,W);
-    if(!opts.length){
-      ge('ensOpts').innerHTML='<div class="alert alert-warn" style="margin-top:6px">'+N+' entradas no se puede dividir en bloques iguales (es número primo). Agrega o quita una entrada (ej. un filler), o usa Bloques Completos.</div>';
-    } else {
-      if(!ensUserK || !ge('ensK').value){ var r=opts.find(function(o){return o.rec;}); ge('ensK').value=r.k; }
-      var kSel=+gv('ensK');
-      var h='<div class="ens-hint">Terreno por localidad, asumiendo <b>1 bloque = 1 faja</b>. Plot de '+nS+' surcos = '+W.toFixed(2)+' m de ancho. Frente = Block Size × ancho del plot; fondo = fajas × largo del plot. Se recomienda la opción <b>más cuadrada</b>. Si las localidades llevan distintos surcos por plot, revisa con el número que más se use.</div>'+
-        '<table class="opt-table"><thead><tr><th>Block Size</th><th>Bloques/rep</th><th>Fajas</th><th>Frente × Fondo</th><th>Surcos/faja</th></tr></thead><tbody>';
-      opts.forEach(function(o){
-        h+='<tr class="'+(o.k===kSel?'sel':'')+'" onclick="ge(\'ensK\').value='+o.k+';ensOnParams(true)">'+
-           '<td>'+o.k+(o.rec?'<span class="rec">más cuadrado</span>':'')+'</td><td>'+o.s+'</td><td>'+o.fajas+'</td>'+
-           '<td>'+o.frente.toFixed(1)+' × '+o.fondo.toFixed(1)+' m</td><td>'+(o.k*nS)+'</td></tr>';
-      });
-      h+='</tbody></table>';
-      ge('ensOpts').innerHTML=h;
-    }
-    var k=+gv('ensK');
-    if(k && N%k===0 && k<N) info=N+' entradas · '+reps+' rep × '+(N/k)+' bloques de <b>'+k+'</b> = <b>'+(N*reps)+' plots</b>/localidad';
-    else info='<span style="color:#991b1b">Block Size '+(k||'—')+' no divide a '+N+' entradas.</span>';
-  } else if(d==='RCBD'){
-    info=N+' entradas × '+reps+' rep = <b>'+(N*reps)+' plots</b>/localidad (cada rep es un bloque completo)';
-  } else if(d==='AUG'){
-    var nC=ensEntries.filter(function(e){return e.type==='C';}).length, nT=N-nC, b=+gv('ensAugB')||1;
-    if(!nC) info='<span style="color:#991b1b">Marca al menos un testigo (C) en la lista de entradas.</span>';
+    var divs=[]; for(var k=2;k<N;k++) if(N%k===0) divs.push(k);
+    if(!N) ge('ensKOpts').innerHTML='';
+    else if(!divs.length) ge('ensKOpts').innerHTML='<div class="alert alert-warn">'+N+' entradas no se puede dividir en bloques iguales (número primo). Agrega o quita una entrada, o usa bloques al azar.</div>';
     else {
-      var mx=Math.ceil(nT/b), mn=Math.floor(nT/b);
-      info=b+' bloques · '+nC+' testigos por bloque + '+(mn===mx?mx:mn+'–'+mx)+' tratamientos = bloques de '+(mn===mx?(mx+nC):(mn+nC)+'–'+(mx+nC))+
-           ' · <b>'+(nT+nC*b)+' plots</b>/localidad';
+      var P1=ensLocs.length?ensP(ensLocs[0]):0;
+      if(!fromK && !gv('ensK')){
+        var best=divs[0]; divs.forEach(function(x){ var tgt=P1||Math.sqrt(N); if(Math.abs(x-tgt)<Math.abs(best-tgt)) best=x; });
+        ge('ensK').value=best;
+      }
+      var kSel=+gv('ensK'), h='<div class="blk-cells" style="margin-bottom:6px">';
+      divs.forEach(function(x){
+        h+='<span style="cursor:pointer;'+(x===kSel?'background:#4338ca;color:#fff':'')+'" onclick="ge(\'ensK\').value='+x+';ensOnParams(true);ensStale()" title="'+(N/x)+' bloques por rep">'+x+(x===P1?' ★':'')+'</span>';
+      });
+      ge('ensKOpts').innerHTML=h+'</div>'+(P1?'<div style="font-size:.68rem;color:#64748b">★ = igual a los plots por faja de la localidad 1 (1 bloque = 1 faja).</div>':'');
     }
-  } else if(d==='LIST'){
-    info=N+' entradas × '+reps+' rep en el orden de la lista (sin aleatorizar) = <b>'+(N*reps)+' plots</b>/localidad';
   }
-  ge('ensInfo').innerHTML=info+(nLoc>1?' · '+nLoc+' localidades':'');
+  ensUpdateLocCalc();
 }
 
-/* Bloques incompletos resolubles: cada rep es una permutación completa cortada en bloques de k.
-   Para reps 2+ se prueban muchas permutaciones y se escoge la que menos repite pares
-   de entradas que ya coincidieron en un mismo bloque (como hace un alfa-látice). */
+/* ─────────── Constructores de repeticiones ─────────── */
+// Unidades para bloques al azar: cada nest es una unidad, el resto son entradas sueltas
+function ensUnits(){
+  var map={}, units=[];
+  ensEntries.forEach(function(e){
+    var n=(e.nest||'').trim();
+    if(n){ if(!map[n]){ map[n]=[]; units.push({nest:n,items:map[n]}); } map[n].push(e.entry); }
+    else units.push({nest:'',items:[e.entry]});
+  });
+  return units;
+}
+function ensRepRCBD(units,rnd){
+  var out=[];
+  shuffle(units.slice(),rnd).forEach(function(u){
+    (u.items.length>1?shuffle(u.items.slice(),rnd):u.items).forEach(function(x){out.push(x);});
+  });
+  return out;
+}
+// ¿Algún nest queda partido entre dos fajas? (offset = plots ya ocupados antes de esta rep)
+function ensNestSplit(ord,offset,P,nestOf){
+  var seen={};
+  for(var i=0;i<ord.length;i++){
+    var n=nestOf[ord[i]]; if(!n) continue;
+    var f=Math.floor((offset+i)/P);
+    if(seen[n]===undefined) seen[n]=f; else if(seen[n]!==f) return true;
+  }
+  return false;
+}
+function ensShuffleDiff(a,rnd){
+  if(a.length<2) return a.slice();
+  var s=a.slice();
+  for(var t=0;t<50;t++){ s=shuffle(a.slice(),rnd); if(s.join(',')!==a.join(',')) break; }
+  return s;
+}
+// Parent Testing: rep 1 híbridos→líneas en orden; reps pares líneas→híbridos al azar; impares híbridos→líneas al azar
+function ensRepPT(r,H,L,rnd){
+  if(r===1) return H.concat(L);
+  var h=ensShuffleDiff(H,rnd), l=ensShuffleDiff(L,rnd);
+  return (r%2===0)?l.concat(h):h.concat(l);
+}
+/* Bloques incompletos resolubles: cada rep es una permutación completa cortada en bloques de k;
+   reps 2+ minimizan pares que ya coincidieron en un bloque (tipo alfa-látice). */
 function ensRepIncompleto(N,k,conc,rnd,isFirst){
   var base=[]; for(var i=1;i<=N;i++) base.push(i);
   if(isFirst) return shuffle(base.slice(),rnd);
@@ -1743,141 +1939,222 @@ function ensRepIncompleto(N,k,conc,rnd,isFirst){
   return best;
 }
 
+/* ─────────── Generar ─────────── */
 function ensGenerar(){
   var N=ensEntries.length;
   if(!N){showAlert('ensAlertGen','Carga primero el listado de materiales (paso 1).','err');return;}
-  var d=gv('ensDiseno'), nLoc=+gv('ensLoc'), reps=+gv('ensReps');
-  if(!nLoc||nLoc<1){showAlert('ensAlertGen','Indica cuántas localidades.','err');return;}
-  if(d!=='AUG' && (!reps||reps<1)){showAlert('ensAlertGen','Indica cuántas repeticiones.','err');return;}
+  var d=ensDesign();
+  if(['RCBD','LIST','PT','RIBD','AUG'].indexOf(d)<0){showAlert('ensAlertGen','Este tipo de diseño se genera directamente en BMS.','err');return;}
   if(!gv('ensSeed')) ensNewSeed();
-  var seed=parseInt(gv('ensSeed'))||1;
-  var rnd=mulberry32(seed);
+  var seed=parseInt(gv('ensSeed'))||1, rnd=mulberry32(seed);
   var pStart=parseInt(gv('ensPlotStart')); if(isNaN(pStart)) pStart=1;
-  var cont=gv('ensPlotMode')==='cont';
-  var rows=[], plot=pStart, k=0, nb=0, plotsLoc=0;
+  var cont=gv('ensPlotMode')==='cont', wantRC=ge('ensRowCol').checked, repFaja=ge('ensRepFaja').checked;
+  var fill=ensFillerEntry(), errs=[], warns=[];
+  var checks=ensEntries.filter(ensIsC).map(function(e){return e.entry;});
+  var tests =ensEntries.filter(function(e){return !ensIsC(e);}).map(function(e){return e.entry;});
+  var k=+gv('ensK'), nb=+gv('ensAugB');
 
-  if(d==='RIBD'){
-    k=+gv('ensK');
-    if(!k||N%k!==0||k>=N){showAlert('ensAlertGen','El Block Size ('+(k||'vacío')+') debe dividir exacto a '+N+' entradas y ser menor que '+N+'.','err');return;}
-    nb=N/k; ensCols=['TRIAL_INSTANCE','REP_NO','BLOCK_NO','PLOT_NO','ENTRY_NO'];
-    for(var l=1;l<=nLoc;l++){
-      if(!cont) plot=pStart;
-      var conc=[]; for(var i=0;i<=N;i++){conc.push(new Array(N+1).fill(0));}
-      for(var r=1;r<=reps;r++){
-        var p=ensRepIncompleto(N,k,conc,rnd,r===1);
-        // aleatorizar el orden de los bloques dentro de la rep
-        var blocks=[]; for(var b=0;b<nb;b++) blocks.push(p.slice(b*k,(b+1)*k));
+  // Validaciones
+  if(d==='RIBD' && (!k||N%k!==0||k>=N)) errs.push('Block Size ('+(k||'vacío')+') debe dividir exacto a '+N+' entradas y ser menor que '+N+'.');
+  if(d==='AUG'){
+    if(!checks.length) errs.push('El diseño aumentado necesita testigos: marca al menos una entrada como C.');
+    if(!nb||nb<1) errs.push('Indica el número de bloques.');
+    else if(tests.length && nb>tests.length) errs.push('Hay más bloques ('+nb+') que híbridos ('+tests.length+').');
+  }
+  var H=[], Ln=[];
+  if(d==='PT'){
+    ensEntries.forEach(function(e){ (e.role==='L'?Ln:H).push(e.entry); });
+    if(!Ln.length) warns.push('Parent Testing sin líneas marcadas (L): todas las entradas se trataron como híbridos.');
+  }
+  ensLocs.forEach(function(l,i){
+    var tag='Loc '+(i+1)+(l.name?' ('+escH(l.name)+')':'')+': ';
+    if(d!=='AUG' && !(+l.reps>=1)) errs.push(tag+'faltan las repeticiones.');
+    if(!(+l.surcos>=1)) errs.push(tag+'faltan los surcos por plot.');
+    var P=ensP(l), cap=ensCap(l);
+    if(+l.sf>0 && !P) errs.push(tag+'surcos por faja menor que surcos por plot.');
+    if(wantRC && !P) errs.push(tag+'para ROW/COL indica surcos por faja.');
+    if(+l.reps>=1 || d==='AUG'){
+      var need=ensNeed(l), real=ensReal(l);
+      if(cap && need>cap) errs.push(tag+'no alcanza: necesita '+need+' plots y caben '+cap+' ('+P+' por faja × '+l.fajas+' fajas). Faltan '+(need-cap)+'.');
+      else if((cap||need)>real && !fill) errs.push(tag+'necesita '+((cap||need)-real)+' filler(s): indica el GID del filler (paso 4).');
+    }
+  });
+  if(errs.length){ showAlert('ensAlertGen',errs.join('<br>'),'err'); return; }
+
+  var nestOf={}; ensEntries.forEach(function(e){ nestOf[e.entry]=(e.nest||'').trim(); });
+  var anyNest=ensEntries.some(function(e){return e.nest;});
+  var hasNest=d==='RCBD' && anyNest;
+  if(anyNest && d!=='RCBD') warns.push('El nesting solo se aplica en bloques al azar; en este diseño se ignoró.');
+  if(hasNest){
+    var sz={}; ensEntries.forEach(function(e){ if(e.nest) sz[e.nest]=(sz[e.nest]||0)+1; });
+    Object.keys(sz).forEach(function(n){ if(sz[n]<2) warns.push('El nest "'+n+'" tiene una sola entrada.'); });
+  }
+  var units=ensUnits();
+
+  var rows=[], plot=pStart, layout={}, totFill=0, split=[];
+  ensLocs.forEach(function(l,li){
+    var loc=li+1; if(!cont) plot=pStart;
+    var P=ensP(l), cap=ensCap(l), rf=repFaja&&P;
+    var reps=d==='AUG'?1:+l.reps, items=[], conc=null;
+    if(d==='RIBD'){ conc=[]; for(var i=0;i<=N;i++) conc.push(new Array(N+1).fill(0)); }
+    for(var r=1;r<=reps;r++){
+      var offset=items.length, rep=[];
+      if(d==='RCBD'){
+        var ord=null, tries=(hasNest&&P)?500:1;
+        for(var t=0;t<tries;t++){
+          var o=ensRepRCBD(units,rnd);
+          if(!ord) ord=o;
+          if(!(hasNest&&P) || !ensNestSplit(o,offset,P,nestOf)){ ord=o; break; }
+        }
+        if(hasNest&&P&&ensNestSplit(ord,offset,P,nestOf)) split.push('loc '+loc+' rep '+r);
+        ord.forEach(function(e){ rep.push({rep:r,block:0,entry:e}); });
+      } else if(d==='LIST'){
+        ensEntries.forEach(function(e){ rep.push({rep:r,block:0,entry:e.entry}); });
+      } else if(d==='PT'){
+        ensRepPT(r,H,Ln,rnd).forEach(function(e){ rep.push({rep:r,block:0,entry:e}); });
+      } else if(d==='RIBD'){
+        var p=ensRepIncompleto(N,k,conc,rnd,r===1), blocks=[];
+        for(var b=0;b<N/k;b++) blocks.push(p.slice(b*k,(b+1)*k));
         shuffle(blocks,rnd);
         blocks.forEach(function(bl,bi){
           for(var x=0;x<bl.length;x++) for(var y=x+1;y<bl.length;y++){conc[bl[x]][bl[y]]++;conc[bl[y]][bl[x]]++;}
-          bl.forEach(function(e){ rows.push({TRIAL_INSTANCE:l,REP_NO:r,BLOCK_NO:bi+1,PLOT_NO:plot++,ENTRY_NO:e}); });
+          bl.forEach(function(e){ rep.push({rep:r,block:bi+1,entry:e}); });
         });
+      } else if(d==='AUG'){
+        var tt=shuffle(tests.slice(),rnd), base3=Math.floor(tests.length/nb), extra=tests.length%nb;
+        for(var b3=0;b3<nb;b3++){
+          var from=b3*base3+Math.min(b3,extra), to=from+base3+(b3<extra?1:0);
+          shuffle(checks.concat(tt.slice(from,to)),rnd).forEach(function(e){ rep.push({rep:1,block:b3+1,entry:e}); });
+        }
       }
+      rep.forEach(function(x){ items.push(x); });
+      if(rf){ var lr=rep[rep.length-1]; while(items.length%P) items.push({rep:r,block:lr.block,entry:fill.entry,fill:true}); }
     }
-    plotsLoc=N*reps;
-  } else if(d==='RCBD'){
-    ensCols=['TRIAL_INSTANCE','REP_NO','PLOT_NO','ENTRY_NO'];
-    for(var l2=1;l2<=nLoc;l2++){
-      if(!cont) plot=pStart;
-      for(var r2=1;r2<=reps;r2++){
-        var p2=[]; for(var i2=1;i2<=N;i2++) p2.push(i2);
-        shuffle(p2,rnd).forEach(function(e){ rows.push({TRIAL_INSTANCE:l2,REP_NO:r2,PLOT_NO:plot++,ENTRY_NO:e}); });
-      }
-    }
-    plotsLoc=N*reps;
-  } else if(d==='AUG'){
-    var checks=ensEntries.filter(function(e){return e.type==='C';}).map(function(e){return e.entry;});
-    var tests =ensEntries.filter(function(e){return e.type!=='C';}).map(function(e){return e.entry;});
-    nb=+gv('ensAugB');
-    if(!checks.length){showAlert('ensAlertGen','El diseño aumentado necesita testigos: marca al menos una entrada como C.','err');return;}
-    if(!nb||nb<1){showAlert('ensAlertGen','Indica el número de bloques.','err');return;}
-    if(nb>tests.length&&tests.length){showAlert('ensAlertGen','Hay más bloques ('+nb+') que tratamientos ('+tests.length+').','err');return;}
-    ensCols=['TRIAL_INSTANCE','BLOCK_NO','PLOT_NO','ENTRY_NO'];
-    for(var l3=1;l3<=nLoc;l3++){
-      if(!cont) plot=pStart;
-      var tt=shuffle(tests.slice(),rnd);
-      for(var b3=0;b3<nb;b3++){
-        // reparto equilibrado: los primeros (nT mod b) bloques llevan uno más
-        var base3=Math.floor(tests.length/nb), extra=tests.length%nb;
-        var from=b3*base3+Math.min(b3,extra), to=from+base3+(b3<extra?1:0);
-        var blk=shuffle(checks.concat(tt.slice(from,to)),rnd);
-        blk.forEach(function(e){ rows.push({TRIAL_INSTANCE:l3,BLOCK_NO:b3+1,PLOT_NO:plot++,ENTRY_NO:e}); });
-      }
-    }
-    plotsLoc=tests.length+checks.length*nb;
-  } else if(d==='LIST'){
-    ensCols=['TRIAL_INSTANCE','REP_NO','PLOT_NO','ENTRY_NO'];
-    for(var l4=1;l4<=nLoc;l4++){
-      if(!cont) plot=pStart;
-      for(var r4=1;r4<=reps;r4++) ensEntries.forEach(function(e){ rows.push({TRIAL_INSTANCE:l4,REP_NO:r4,PLOT_NO:plot++,ENTRY_NO:e.entry}); });
-    }
-    plotsLoc=N*reps;
-  } else {
-    showAlert('ensAlertGen','Este tipo de diseño se genera directamente en BMS.','err');return;
-  }
+    var target=cap||items.length, li2=items[items.length-1];
+    while(items.length<target) items.push({rep:li2.rep,block:li2.block,entry:fill.entry,fill:true});
+
+    items.forEach(function(it,i){
+      var row={TRIAL_INSTANCE:loc};
+      if(d!=='AUG') row.REP_NO=it.rep;
+      if(d==='RIBD'||d==='AUG') row.BLOCK_NO=it.block;
+      row.PLOT_NO=plot++; row.ENTRY_NO=it.entry;
+      if(P){ var col=Math.floor(i/P)+1, pos=i%P+1; row.ROW=(col%2===1)?pos:(P+1-pos); row.COL=col; }
+      row._fill=!!it.fill; row._nest=it.fill?'':(nestOf[it.entry]||'');
+      if(it.fill) totFill++;
+      rows.push(row);
+    });
+    layout[loc]={P:P,fajas:P?Math.ceil(items.length/P):0,name:l.name,reps:reps};
+  });
+  if(split.length) warns.push('No se logró dejar algún nest dentro de una sola faja en: '+split.join(', ')+' (el nest es más grande que la faja o hay poco espacio). Quedan juntos en orden de siembra.');
+
+  ensCols=['TRIAL_INSTANCE'];
+  if(d!=='AUG') ensCols.push('REP_NO');
+  if(d==='RIBD'||d==='AUG') ensCols.push('BLOCK_NO');
+  ensCols.push('PLOT_NO','ENTRY_NO');
+  if(wantRC) ensCols.push('ROW','COL');
 
   ensData=rows;
-  ensMeta={d:d,N:N,nLoc:nLoc,reps:d==='AUG'?1:reps,k:k,nb:nb,plotsLoc:plotsLoc,seed:seed};
+  ensMeta={d:d,N:N,nLoc:ensLocs.length,seed:seed,totFill:totFill,fill:fill,layout:layout};
   ge('ensBtnExp').disabled=false;
-  var dName=ge('ensDiseno').options[ge('ensDiseno').selectedIndex].text;
-  showAlert('ensAlertGen','&#10003; '+dName+': '+rows.length+' filas ('+nLoc+' localidad'+(nLoc>1?'es':'')+' × '+plotsLoc+' plots).'+
-    '<br><small>'+(d==='LIST'?'Sin aleatorizar: mismo orden de la lista en cada rep y localidad.':'Semilla <b>'+seed+'</b> · cada localidad con su propia aleatorización.')+'</small>','ok');
+  var dName=d==='PT'?'Parent Testing (nesting híbridos/líneas)':ge('ensDiseno').options[ge('ensDiseno').selectedIndex].text;
+  var msg='&#10003; '+dName+': '+rows.length+' plots en '+ensLocs.length+' localidad'+(ensLocs.length>1?'es':'')+
+    (totFill?' (incluye '+totFill+' filler'+(totFill>1?'s':'')+')':'')+'.'+
+    '<br><small>'+(d==='LIST'?'Sin aleatorizar: mismo orden de la lista en cada rep.':'Semilla <b>'+seed+'</b> · cada localidad con su propia aleatorización.')+'</small>';
+  if(warns.length) msg+='<br><small><b>Ojo:</b> '+warns.join('<br>')+'</small>';
+  showAlert('ensAlertGen',msg,warns.length?'warn':'ok');
 
-  ge('ensSEnt').textContent=N;
-  ge('ensSLoc').textContent=nLoc;
-  ge('ensSPlotLoc').textContent=plotsLoc;
+  ge('ensSEnt').textContent=ensAllEntries().length;
+  ge('ensSLoc').textContent=ensLocs.length;
   ge('ensSTot').textContent=rows.length;
+  ge('ensSFill').textContent=totFill;
   ge('ensStatsArea').style.display='block';
   ensRenderBlk(1); ensRenderTabla(); ensRenderImp();
   ensShowTab('blk');
 }
 
+/* ─────────── Vistas ─────────── */
 function ensRenderBlk(loc){
   if(!ensData.length) return;
   loc=+loc||1;
-  var isC={}; ensEntries.forEach(function(e){ if(e.type==='C') isC[e.entry]=1; });
-  var sel='<div class="field" style="max-width:220px"><label>Ver localidad (TRIAL_INSTANCE)</label><select onchange="ensRenderBlk(this.value)">';
-  for(var l=1;l<=ensMeta.nLoc;l++) sel+='<option value="'+l+'"'+(l===loc?' selected':'')+'>Localidad '+l+'</option>';
+  var L=ensMeta.layout[loc], info={};
+  ensEntries.forEach(function(e){ info[e.entry]=e; });
+  var sel='<div class="field" style="max-width:260px"><label>Ver localidad (TRIAL_INSTANCE)</label><select onchange="ensRenderBlk(this.value)">';
+  for(var l=1;l<=ensMeta.nLoc;l++){ var nm=ensMeta.layout[l].name; sel+='<option value="'+l+'"'+(l===loc?' selected':'')+'>Localidad '+l+(nm?' — '+escH(nm):'')+'</option>'; }
   sel+='</select></div>';
-  var groups={}, order=[];
-  ensData.forEach(function(r){
-    if(r.TRIAL_INSTANCE!==loc) return;
-    var rep=r.REP_NO||1, blk=r.BLOCK_NO||0, key=rep+'_'+blk;
-    if(!groups[key]){groups[key]={rep:rep,blk:blk,items:[]};order.push(key);}
-    groups[key].items.push(r);
-  });
-  var h=sel+'<div class="blk-wrap">', lastRep=null;
-  order.forEach(function(key){
-    var g=groups[key];
-    if(ensMeta.d!=='AUG' && g.rep!==lastRep){ h+='<div class="rep-sep">Repetición '+g.rep+'</div>'; lastRep=g.rep; }
-    var lbl=ensMeta.d==='AUG'?'Bloque '+g.blk:(g.blk?'Bloque '+g.blk:'Rep '+g.rep);
-    lbl+='<br><span style="font-weight:400;color:#94a3b8">plots '+g.items[0].PLOT_NO+'–'+g.items[g.items.length-1].PLOT_NO+'</span>';
-    h+='<div class="blk-row"><div class="blk-lbl">'+lbl+'</div><div class="blk-cells">';
-    g.items.forEach(function(r){ h+='<span class="'+(isC[r.ENTRY_NO]?'chk':'')+'" title="PLOT_NO '+r.PLOT_NO+'">'+r.ENTRY_NO+'</span>'; });
-    h+='</div></div>';
-  });
-  h+='</div><div style="font-size:.7rem;color:#64748b;margin-top:10px">Cada número es el ENTRY_NO en orden de PLOT_NO. '+
-     '<span style="background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:3px;font-weight:700">amarillo</span> = testigo (C). '+
-     'Pasa el cursor para ver el PLOT_NO.</div>';
+  var rows=ensData.filter(function(r){return r.TRIAL_INSTANCE===loc;});
+  function cls(r){
+    if(r._fill) return 'ev-fill';
+    var e=info[r.ENTRY_NO]||{};
+    if(e.type==='C') return 'ev-chk';
+    if(ensMeta.d==='PT' && e.role==='L') return 'ev-line';
+    return ((r.REP_NO||r.BLOCK_NO||1)%2===1)?'ev-r1':'ev-r2';
+  }
+  function nestSt(r){ return r._nest?' style="box-shadow:inset 0 0 0 2px '+nestColor(r._nest)+'"':''; }
+  var legend='<div class="ev-legend"><span class="ev-r1">Rep impar</span><span class="ev-r2">Rep par</span><span class="ev-chk">Testigo (C)</span>'+
+    (ensMeta.d==='PT'?'<span class="ev-line">Línea</span>':'')+'<span class="ev-fill">Filler</span><span style="box-shadow:inset 0 0 0 2px #6366f1;background:#fff">Nest (borde)</span></div>';
+  var h=sel+legend;
+  if(L.P){
+    var grid={}; rows.forEach(function(r){ grid[r.COL+'_'+r.ROW]=r; });
+    h+='<div class="map-scroll"><table class="field-map"><thead><tr><th>Faja \\ Plot</th>';
+    for(var c=1;c<=L.P;c++) h+='<th>'+c+'</th>';
+    h+='</tr></thead><tbody>';
+    for(var f=L.fajas;f>=1;f--){
+      h+='<tr><td class="surco-lbl">Faja '+f+' '+(f%2===1?'→':'←')+'</td>';
+      for(var c2=1;c2<=L.P;c2++){
+        var r=grid[f+'_'+c2];
+        if(!r){ h+='<td class="cell-e"></td>'; continue; }
+        var des=r._fill?((ensMeta.fill&&ensMeta.fill.des)||'Filler'):((info[r.ENTRY_NO]||{}).des||'');
+        h+='<td class="plot-cell ev-cell '+cls(r)+'"'+nestSt(r)+' title="'+escH(des)+' · PLOT_NO '+r.PLOT_NO+(r._nest?' · nest '+r._nest:'')+'">'+
+           '<div class="mc-plot">'+(r._fill?'FILL':'E'+r.ENTRY_NO)+'</div>'+
+           (des?'<div class="mc-des">'+escH(des)+'</div>':'')+
+           '<div class="mc-gid">'+(r.REP_NO?'R'+r.REP_NO:'B'+r.BLOCK_NO)+' · #'+r.PLOT_NO+'</div>'+
+           (r._nest?'<div class="mc-role" style="color:'+nestColor(r._nest)+'">'+r._nest+'</div>':'')+'</td>';
+      }
+      h+='</tr>';
+    }
+    h+='</tbody></table></div><div style="font-size:.7rem;color:#64748b;margin-top:8px">Vista física en serpentina ('+L.P+' plots por faja × '+L.fajas+' fajas): faja impar →, faja par ←. '+
+       'Cada celda: ENTRY_NO, rep (o bloque) y PLOT_NO. Es solo para revisar; BMS dibuja su propio mapa con el diseño.</div>';
+  } else {
+    var groups={}, order=[];
+    rows.forEach(function(r){
+      var key=(r.REP_NO||1)+'_'+(r.BLOCK_NO||0);
+      if(!groups[key]){groups[key]={rep:r.REP_NO||1,blk:r.BLOCK_NO||0,items:[]};order.push(key);}
+      groups[key].items.push(r);
+    });
+    h+='<div class="blk-wrap">'; var lastRep=null;
+    order.forEach(function(key){
+      var g=groups[key];
+      if(ensMeta.d!=='AUG' && g.rep!==lastRep){ h+='<div class="rep-sep">Repetición '+g.rep+'</div>'; lastRep=g.rep; }
+      var lbl=g.blk?'Bloque '+g.blk:'Rep '+g.rep;
+      lbl+='<br><span style="font-weight:400;color:#94a3b8">plots '+g.items[0].PLOT_NO+'–'+g.items[g.items.length-1].PLOT_NO+'</span>';
+      h+='<div class="blk-row"><div class="blk-lbl">'+lbl+'</div><div class="blk-cells">';
+      g.items.forEach(function(r){ h+='<span class="'+cls(r)+'"'+nestSt(r)+' title="'+escH(r._fill?'Filler':((info[r.ENTRY_NO]||{}).des||''))+' · PLOT_NO '+r.PLOT_NO+'">'+(r._fill?'F':r.ENTRY_NO)+'</span>'; });
+      h+='</div></div>';
+    });
+    h+='</div><div style="font-size:.7rem;color:#64748b;margin-top:10px">Cada número es el ENTRY_NO en orden de PLOT_NO. Indica surcos por faja y fajas en el paso 3 para ver la vista física.</div>';
+  }
   ge('ensTabBlk').innerHTML=h;
 }
 
 function ensRenderTabla(){
+  var des={}; ensAllEntries().forEach(function(e){ des[e.entry]=e.des; });
   var h='<div class="tbl-scroll"><table class="dtable"><thead><tr>';
-  ensCols.forEach(function(c){h+='<th>'+c+'</th>';}); h+='</tr></thead><tbody>';
+  ensCols.forEach(function(c){h+='<th>'+c+'</th>';}); h+='<th>Designación</th></tr></thead><tbody>';
   var parts=[];
-  ensData.forEach(function(r){ parts.push('<tr>'+ensCols.map(function(c){return '<td>'+r[c]+'</td>';}).join('')+'</tr>'); });
+  ensData.forEach(function(r){ parts.push('<tr'+(r._fill?' style="color:#94a3b8"':'')+'>'+ensCols.map(function(c){return '<td>'+r[c]+'</td>';}).join('')+
+    '<td style="text-align:left;color:#64748b">'+escH(des[r.ENTRY_NO]||'')+'</td></tr>'); });
   h+=parts.join('')+'</tbody></table></div>';
-  ge('ensTabTabla').innerHTML=h;
+  ge('ensTabTabla').innerHTML=h+'<div style="font-size:.7rem;color:#64748b;margin-top:6px">La columna "Designación" es solo de pantalla; no se exporta en el Diseño.</div>';
 }
 
 function ensRenderImp(){
   if(!ensEntries.length) return;
-  var h='<div class="tbl-scroll"><table class="dtable"><thead><tr><th>ENTRY_NO</th><th>GID</th><th>DESIGNATION</th><th>ENTRY_TYPE</th></tr></thead><tbody>';
-  ensEntries.forEach(function(e){
-    h+='<tr><td>'+e.entry+'</td><td>'+e.gid+'</td><td style="text-align:left">'+(e.des||'')+'</td><td'+(e.type==='C'?' style="color:#92400e;font-weight:700"':'')+'>'+e.type+'</td></tr>';
+  var h='<div class="tbl-scroll"><table class="dtable"><thead><tr><th>ENTRY_NO</th><th>GID</th><th>DESIGNATION</th><th>ENTRY_TYPE</th><th>Nota</th></tr></thead><tbody>';
+  ensAllEntries().forEach(function(e){
+    var note=e.filler?'Filler':(e.et==='C'?'Testigo':(e.role==='L'&&ensIsPT()?'Línea':'Híbrido'));
+    h+='<tr><td>'+e.entry+'</td><td>'+e.gid+'</td><td style="text-align:left">'+escH(e.des)+'</td><td'+(e.et==='C'?' style="color:#92400e;font-weight:700"':'')+'>'+escH(e.et)+'</td><td style="color:#64748b">'+note+'</td></tr>';
   });
-  ge('ensTabImp').innerHTML=h+'</tbody></table></div>';
+  ge('ensTabImp').innerHTML=h+'</tbody></table></div><div style="font-size:.7rem;color:#64748b;margin-top:6px">La columna "Nota" es solo de pantalla; no se exporta.</div>';
 }
 
 function ensShowTab(name){
@@ -1889,12 +2166,13 @@ function ensShowTab(name){
   });
 }
 
+/* ─────────── Exportar ─────────── */
 // ImportList con DESIGNATION y ENTRY_TYPE (formato del ImportList de BMS)
 function ensBuildImportlist(){
   var wb=new ExcelJS.Workbook(); wb.creator='Generador de Diseño'; wb.created=new Date();
   var ws=wb.addWorksheet('Observation',{views:[{state:'frozen',ySplit:1}]});
   ws.addRow(['ENTRY_NO','GID','GUID','DESIGNATION','ENTRY_CODE','ENTRY_TYPE']);
-  ensEntries.forEach(function(e){ ws.addRow([e.entry,e.gid,'',e.des||'','',e.type]); });
+  ensAllEntries().forEach(function(e){ ws.addRow([e.entry,e.gid,'',e.des||'','',e.et]); });
   [10,10,36,28,14,12].forEach(function(w,i){ws.getColumn(i+1).width=w;});
   styleHeaderRow(ws,1);
   ws.autoFilter={from:{row:1,column:1},to:{row:1,column:6}};
@@ -1917,10 +2195,11 @@ function ensExportar(){
     {wb:wbImp, filename:'01_ImportList_'+nombre+'.xlsx'},
     {wb:wbDis, filename:'02_Diseno_'+nombre+'.xlsx'}
   ]);
-  showAlert('ensAlertGen','&#10003; Exportados 2 archivos: ImportList ('+ensEntries.length+' entradas) y Diseño ('+ensData.length+' filas, semilla '+ensMeta.seed+').','ok');
+  showAlert('ensAlertGen','&#10003; Exportados 2 archivos: ImportList ('+ensAllEntries().length+' entradas) y Diseño ('+ensData.length+' filas'+
+    (ensMeta.totFill?', '+ensMeta.totFill+' fillers':'')+', semilla '+ensMeta.seed+').','ok');
 }
 
-ensNewSeed(); ensOnParams();
+ensNewSeed(); ensResizeLocs(); ensOnParams();
 </script>
 </body>
 </html>
