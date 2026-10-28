@@ -442,14 +442,14 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
       <div class="field" id="ensDisenoWrap">
         <label>Tipo de diseño (como en BMS)</label>
         <select id="ensDiseno" onchange="ensOnParams();ensStale()">
-          <option value="RCBD" selected>Diseño en Bloques Completos Aleatorizados (bloques al azar)</option>
+          <option value="RIBD" selected>Diseño en Bloques Incompletos Resolubles (el que usan en BMS)</option>
+          <option value="RCBD">Diseño en Bloques Completos Aleatorizados</option>
           <option value="LIST">Diseño en orden de lista de entradas</option>
-          <option value="RIBD">Diseño en Bloques Incompletos Resolubles</option>
           <option value="AUG">Diseño en Bloques Aleatorizados Aumentados</option>
           <option value="RC" disabled>Diseño en Filas y Columnas — hacerlo en BMS</option>
           <option value="PREP" disabled>Diseño P-rep — hacerlo en BMS</option>
         </select>
-        <small>Nesting (materiales juntos) se aplica en bloques al azar.</small>
+        <small>Nesting (materiales juntos) se respeta en bloques incompletos y en bloques completos: el grupo queda junto dentro del mismo bloque.</small>
       </div>
       <div id="ensPTNote" class="ens-hint" style="display:none;margin-top:0;margin-bottom:10px">
         <b>Parent Testing (nesting P.T.):</b> Rep 1 = primero todos los <b>híbridos</b> y luego las <b>líneas</b>, cada grupo en el orden de la lista.
@@ -460,7 +460,7 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
         <div class="field">
           <label>Block Size (plots por bloque)</label>
           <input id="ensK" type="number" value="" min="2" oninput="ensOnParams(true);ensStale()"/>
-          <small>Debe dividir exacto al número de entradas. Toca una opción abajo.</small>
+          <small>Tamaño máximo de bloque. Si no divide exacto, los bloques quedan de tamaños parecidos (ej. 37 con 10 → 10, 9, 9, 9).</small>
         </div>
         <div id="ensKOpts"></div>
       </div>
@@ -1863,20 +1863,24 @@ function ensOnParams(fromK){
   ge('ensBlockWrap').style.display=d==='RIBD'?'block':'none';
   ge('ensAugWrap').style.display=d==='AUG'?'block':'none';
   if(d==='RIBD'){
-    var divs=[]; for(var k=2;k<N;k++) if(N%k===0) divs.push(k);
-    if(!N) ge('ensKOpts').innerHTML='';
-    else if(!divs.length) ge('ensKOpts').innerHTML='<div class="alert alert-warn">'+N+' entradas no se puede dividir en bloques iguales (número primo). Agrega o quita una entrada, o usa bloques al azar.</div>';
+    if(N<4){ ge('ensKOpts').innerHTML=''; }
     else {
       var P1=ensLocs.length?ensP(ensLocs[0]):0;
       if(!fromK && !gv('ensK')){
-        var best=divs[0]; divs.forEach(function(x){ var tgt=P1||Math.sqrt(N); if(Math.abs(x-tgt)<Math.abs(best-tgt)) best=x; });
-        ge('ensK').value=best;
+        var def;
+        if(P1>=2 && P1<N) def=P1;
+        else { def=Math.round(Math.sqrt(N)); for(var q=0;q<=3;q++){ if(N%(def+q)===0&&def+q<N){def+=q;break;} if(def-q>=2&&N%(def-q)===0){def-=q;break;} } }
+        ge('ensK').value=def;
       }
-      var kSel=+gv('ensK'), h='<div class="blk-cells" style="margin-bottom:6px">';
-      divs.forEach(function(x){
-        h+='<span style="cursor:pointer;'+(x===kSel?'background:#4338ca;color:#fff':'')+'" onclick="ge(\'ensK\').value='+x+';ensOnParams(true);ensStale()" title="'+(N/x)+' bloques por rep">'+x+(x===P1?' ★':'')+'</span>';
-      });
-      ge('ensKOpts').innerHTML=h+'</div>'+(P1?'<div style="font-size:.68rem;color:#64748b">★ = igual a los plots por faja de la localidad 1 (1 bloque = 1 faja).</div>':'');
+      var kSel=+gv('ensK'), h='<div class="blk-cells" style="margin-bottom:6px">', maxK=Math.min(N-1,40);
+      for(var x=2;x<=maxK;x++){
+        var sz=ensBlockSizes(N,x), eq=N%x===0;
+        h+='<span style="cursor:pointer;'+(x===kSel?'background:#4338ca;color:#fff;':'')+(eq?'font-weight:900;':'opacity:.75;')+'" onclick="ge(\'ensK\').value='+x+';ensOnParams(true);ensStale()" title="'+sz.length+' bloques por rep: '+ensSizesTxt(sz)+'">'+x+(x===P1?' ★':'')+'</span>';
+      }
+      var szSel=kSel>=2&&kSel<N?ensBlockSizes(N,kSel):null;
+      ge('ensKOpts').innerHTML=h+'</div><div style="font-size:.68rem;color:#64748b;line-height:1.45">'+
+        (szSel?'Con <b>'+kSel+'</b>: <b>'+szSel.length+' bloques</b> por rep de '+ensSizesTxt(szSel)+' plots.<br>':'')+
+        '<b>Negrita</b> = bloques iguales. '+(P1?'★ = plots por faja de la localidad 1 (1 bloque ≈ 1 faja).':'')+'</div>';
     }
   }
   ensUpdateLocCalc();
@@ -1922,21 +1926,53 @@ function ensRepPT(r,H,L,rnd){
   var h=ensShuffleDiff(H,rnd), l=ensShuffleDiff(L,rnd);
   return (r%2===0)?l.concat(h):h.concat(l);
 }
-/* Bloques incompletos resolubles: cada rep es una permutación completa cortada en bloques de k;
-   reps 2+ minimizan pares que ya coincidieron en un bloque (tipo alfa-látice). */
-function ensRepIncompleto(N,k,conc,rnd,isFirst){
-  var base=[]; for(var i=1;i<=N;i++) base.push(i);
-  if(isFirst) return shuffle(base.slice(),rnd);
-  var best=null,bestScore=Infinity,tries=N<=60?400:(N<=200?150:60);
+/* Bloques incompletos resolubles (tipo alfa-látice):
+   · s = ceil(N/k) bloques por rep, de tamaños lo más parecidos posible (máximo k).
+   · Cada rep contiene todas las entradas una vez.
+   · Reps 2+ minimizan pares que ya coincidieron en un bloque.
+   · Nesting: el grupo entero va al mismo bloque y queda contiguo. */
+function ensBlockSizes(N,k){
+  var s=Math.ceil(N/k), base=Math.floor(N/s), extra=N%s, out=[];
+  for(var i=0;i<s;i++) out.push(base+(i<extra?1:0));
+  return out;
+}
+function ensSizesTxt(sz){
+  var c={}; sz.forEach(function(x){c[x]=(c[x]||0)+1;});
+  return Object.keys(c).sort(function(a,b){return b-a;}).map(function(x){return c[x]+'×'+x;}).join(' + ');
+}
+function ensRepIncompleto(units,N,k,conc,rnd,isFirst){
+  var sizes=ensBlockSizes(N,k), best=null, bestScore=Infinity;
+  var tries=isFirst?40:(N<=60?300:(N<=200?120:50));
   for(var t=0;t<tries;t++){
-    var p=shuffle(base.slice(),rnd), score=0;
-    for(var b=0;b<N;b+=k){
-      for(var x=b;x<b+k;x++){ var row=conc[p[x]]; for(var y=x+1;y<b+k;y++){ var c=row[p[y]]; score+=c*c; } }
+    var nests=shuffle(units.filter(function(u){return u.items.length>1;}),rnd).sort(function(a,b){return b.items.length-a.items.length;});
+    var singles=shuffle(units.filter(function(u){return u.items.length===1;}),rnd);
+    var order=nests.concat(singles), rem=shuffle(sizes.slice(),rnd), blocks=rem.map(function(){return [];}), score=0, ok=true;
+    for(var ui=0;ui<order.length;ui++){
+      var u=order[ui], cand=[], bestC=Infinity;
+      for(var b=0;b<blocks.length;b++){
+        if(rem[b]<u.items.length) continue;
+        var c=0;
+        if(!isFirst) blocks[b].forEach(function(bu){ bu.items.forEach(function(x){ u.items.forEach(function(y){ var v=conc[x][y]; c+=v*v; }); }); });
+        if(c<bestC){bestC=c;cand=[b];} else if(c===bestC) cand.push(b);
+      }
+      if(!cand.length){ok=false;break;}
+      var pick=cand[Math.floor(rnd()*cand.length)];
+      blocks[pick].push(u); rem[pick]-=u.items.length; score+=bestC;
       if(score>=bestScore) break;
     }
-    if(score<bestScore){bestScore=score;best=p; if(score===0) break;}
+    if(!ok||score>=bestScore) continue;
+    best=blocks; bestScore=score;
+    if(score===0) break;
   }
-  return best;
+  if(!best) return null;
+  // bloques más grandes primero (así, con bloque = faja, el hueco del filler queda al final de la rep)
+  best=shuffle(best,rnd).sort(function(a,b){return sz(b)-sz(a);});
+  function sz(bl){return bl.reduce(function(t,u){return t+u.items.length;},0);}
+  return best.map(function(bl){
+    var out=[];
+    shuffle(bl,rnd).forEach(function(u){ (u.items.length>1?shuffle(u.items.slice(),rnd):u.items).forEach(function(x){out.push(x);}); });
+    return out;
+  });
 }
 
 /* ─────────── Generar ─────────── */
@@ -1955,7 +1991,12 @@ function ensGenerar(){
   var k=+gv('ensK'), nb=+gv('ensAugB');
 
   // Validaciones
-  if(d==='RIBD' && (!k||N%k!==0||k>=N)) errs.push('Block Size ('+(k||'vacío')+') debe dividir exacto a '+N+' entradas y ser menor que '+N+'.');
+  if(d==='RIBD' && (!k||k<2||k>=N)) errs.push('Block Size ('+(k||'vacío')+') debe ser entre 2 y '+(N-1)+'.');
+  if(d==='RIBD' && k>=2 && k<N){
+    var minB=Math.min.apply(null,ensBlockSizes(N,k)), nsz={};
+    ensEntries.forEach(function(e){ if(e.nest) nsz[e.nest]=(nsz[e.nest]||0)+1; });
+    Object.keys(nsz).forEach(function(n){ if(nsz[n]>minB) errs.push('El nest "'+n+'" tiene '+nsz[n]+' entradas y no cabe en bloques de '+minB+'. Sube el Block Size.'); });
+  }
   if(d==='AUG'){
     if(!checks.length) errs.push('El diseño aumentado necesita testigos: marca al menos una entrada como C.');
     if(!nb||nb<1) errs.push('Indica el número de bloques.');
@@ -1983,8 +2024,8 @@ function ensGenerar(){
 
   var nestOf={}; ensEntries.forEach(function(e){ nestOf[e.entry]=(e.nest||'').trim(); });
   var anyNest=ensEntries.some(function(e){return e.nest;});
-  var hasNest=d==='RCBD' && anyNest;
-  if(anyNest && d!=='RCBD') warns.push('El nesting solo se aplica en bloques al azar; en este diseño se ignoró.');
+  var hasNest=(d==='RCBD'||d==='RIBD') && anyNest;
+  if(anyNest && !hasNest) warns.push('El nesting solo se aplica en bloques incompletos o completos; en este diseño se ignoró.');
   if(hasNest){
     var sz={}; ensEntries.forEach(function(e){ if(e.nest) sz[e.nest]=(sz[e.nest]||0)+1; });
     Object.keys(sz).forEach(function(n){ if(sz[n]<2) warns.push('El nest "'+n+'" tiene una sola entrada.'); });
@@ -2013,9 +2054,8 @@ function ensGenerar(){
       } else if(d==='PT'){
         ensRepPT(r,H,Ln,rnd).forEach(function(e){ rep.push({rep:r,block:0,entry:e}); });
       } else if(d==='RIBD'){
-        var p=ensRepIncompleto(N,k,conc,rnd,r===1), blocks=[];
-        for(var b=0;b<N/k;b++) blocks.push(p.slice(b*k,(b+1)*k));
-        shuffle(blocks,rnd);
+        var blocks=ensRepIncompleto(units,N,k,conc,rnd,r===1);
+        if(!blocks){ showAlert('ensAlertGen','No se pudo acomodar los nests en bloques de este tamaño (loc '+loc+', rep '+r+'). Sube el Block Size.','err'); return; }
         blocks.forEach(function(bl,bi){
           for(var x=0;x<bl.length;x++) for(var y=x+1;y<bl.length;y++){conc[bl[x]][bl[y]]++;conc[bl[y]][bl[x]]++;}
           bl.forEach(function(e){ rep.push({rep:r,block:bi+1,entry:e}); });
