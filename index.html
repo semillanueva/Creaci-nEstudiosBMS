@@ -18,7 +18,8 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
 .modebtn:hover{color:#fff;background:rgba(255,255,255,.06)}
 .modebtn.active{color:#fff;border-bottom-color:#a5b4fc;background:rgba(255,255,255,.10)}
 .main{max-width:1800px;margin:0 auto;padding:20px 18px;display:grid;grid-template-columns:380px 1fr;gap:18px}
-#mainEns{grid-template-columns:480px 1fr;align-items:start}
+#mainEns{grid-template-columns:480px minmax(0,1fr);align-items:start}
+#mainEns .preview-wrap,#mainEns .preview-wrap>.panel{min-width:0}
 #mainEns .preview-wrap{position:sticky;top:10px}
 @media(max-width:800px){#mainEns{grid-template-columns:1fr}#mainEns .preview-wrap{position:static}}
 .panel{background:white;border-radius:14px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
@@ -98,7 +99,12 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
 /* Modo Screening/Finca/Registro */
 .germ-summary-hdr.ens,.germ-row.ens{grid-template-columns:30px 58px 1fr 38px 50px;gap:6px}
 .germ-row.ens .germ-des{white-space:normal;overflow:visible;word-break:break-word;line-height:1.25}
-.field-map td.ev-cell{min-width:96px;max-width:130px}
+.field-map td.ev-cell{min-width:0;max-width:none}
+.surco-map th,.surco-map td{border:1px solid #e2e8f0}
+.surco-ruler th{background:#14532d;color:#fff;font-size:.58rem;padding:2px 0;font-weight:600}
+.surco-ruler th.sep{border-right:2px solid #fff}
+.surco-ruler th:first-child{padding:2px 6px}
+.surco-sum{font-size:.78rem;color:#334155;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:6px 10px;margin-bottom:8px}
 .mc-des{font-size:.6rem;font-weight:600;line-height:1.15;white-space:normal;word-break:break-word;max-width:124px;margin:1px auto 0}
 .et-L{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd}
 .nest-in{width:46px;border:1px solid #e2e8f0;border-radius:4px;padding:2px 4px;font-size:.66rem;font-weight:800;text-align:center;text-transform:uppercase;font-family:inherit}
@@ -2083,7 +2089,7 @@ function ensGenerar(){
       if(it.fill) totFill++;
       rows.push(row);
     });
-    layout[loc]={P:P,fajas:P?Math.ceil(items.length/P):0,name:l.name,reps:reps};
+    layout[loc]={P:P,S:+l.surcos,SF:+l.sf||0,fajas:P?Math.ceil(items.length/P):0,name:l.name,reps:reps};
   });
   if(split.length) warns.push('No se logró dejar algún nest dentro de una sola faja en: '+split.join(', ')+' (el nest es más grande que la faja o hay poco espacio). Quedan juntos en orden de siembra.');
 
@@ -2118,8 +2124,8 @@ function ensRenderBlk(loc){
   loc=+loc||1;
   var L=ensMeta.layout[loc], info={};
   ensEntries.forEach(function(e){ info[e.entry]=e; });
-  var sel='<div class="field" style="max-width:260px"><label>Ver localidad (TRIAL_INSTANCE)</label><select onchange="ensRenderBlk(this.value)">';
-  for(var l=1;l<=ensMeta.nLoc;l++){ var nm=ensMeta.layout[l].name; sel+='<option value="'+l+'"'+(l===loc?' selected':'')+'>Localidad '+l+(nm?' — '+escH(nm):'')+'</option>'; }
+  var sel='<div class="field" style="max-width:420px"><label>Ver localidad (TRIAL_INSTANCE)</label><select onchange="ensRenderBlk(this.value)">';
+  for(var l=1;l<=ensMeta.nLoc;l++){ var nm=ensMeta.layout[l].name; sel+='<option value="'+l+'"'+(l===loc?' selected':'')+'>Localidad '+l+(nm?' — '+escH(nm):'')+' · '+ensMeta.layout[l].S+' surcos/plot</option>'; }
   sel+='</select></div>';
   var rows=ensData.filter(function(r){return r.TRIAL_INSTANCE===loc;});
   function cls(r){
@@ -2135,16 +2141,22 @@ function ensRenderBlk(loc){
   var h=sel+legend;
   if(L.P){
     var grid={}; rows.forEach(function(r){ grid[r.COL+'_'+r.ROW]=r; });
-    h+='<div class="map-scroll"><table class="field-map"><thead><tr><th>Faja \\ Plot</th>';
-    for(var c=1;c<=L.P;c++) h+='<th>'+c+'</th>';
-    h+='</tr></thead><tbody>';
+    var S=L.S||1, TS=L.P*S, sw=Math.max(16,Math.ceil(100/S));
+    h+='<div class="surco-sum"><b>'+L.P+' plots × '+S+' surcos = '+TS+' surcos por faja</b> · '+L.fajas+' fajas · '+(TS*L.fajas)+' surcos en total'+
+       (L.SF&&L.SF>TS?' <span style="color:#92400e">(la faja tiene '+L.SF+' surcos: sobran '+(L.SF-TS)+' sin usar)</span>':'')+'</div>';
+    var ruler='<tr class="surco-ruler"><th>Surcos</th>';
+    for(var sN=1;sN<=TS;sN++) ruler+='<th style="min-width:'+sw+'px"'+(sN%S===0&&sN<TS?' class="sep"':'')+'>'+sN+'</th>';
+    ruler+='</tr>';
+    h+='<div class="map-scroll"><table class="field-map surco-map"><thead><tr><th>Faja \\ Plot</th>';
+    for(var c=1;c<=L.P;c++) h+='<th colspan="'+S+'">'+c+' <span style="font-weight:400;opacity:.7">· s'+((c-1)*S+1)+'–'+(c*S)+'</span></th>';
+    h+='</tr>'+ruler+'</thead><tbody>';
     for(var f=L.fajas;f>=1;f--){
-      h+='<tr><td class="surco-lbl">Faja '+f+' '+(f%2===1?'→':'←')+'</td>';
+      h+='<tr><td class="surco-lbl">Faja '+f+' '+(f%2===1?'→':'←')+'<br><span style="font-weight:400;font-size:.6rem">'+TS+' surcos</span></td>';
       for(var c2=1;c2<=L.P;c2++){
         var r=grid[f+'_'+c2];
-        if(!r){ h+='<td class="cell-e"></td>'; continue; }
+        if(!r){ h+='<td class="cell-e" colspan="'+S+'"></td>'; continue; }
         var des=r._fill?((ensMeta.fill&&ensMeta.fill.des)||'Filler'):((info[r.ENTRY_NO]||{}).des||'');
-        h+='<td class="plot-cell ev-cell '+cls(r)+'"'+nestSt(r)+' title="'+escH(des)+' · PLOT_NO '+r.PLOT_NO+(r._nest?' · nest '+r._nest:'')+'">'+
+        h+='<td colspan="'+S+'" class="plot-cell ev-cell '+cls(r)+'"'+nestSt(r)+' title="'+escH(des)+' · PLOT_NO '+r.PLOT_NO+' · surcos '+((c2-1)*S+1)+'–'+(c2*S)+(r._nest?' · nest '+r._nest:'')+'">'+
            '<div class="mc-plot">'+(r._fill?'FILL':'E'+r.ENTRY_NO)+'</div>'+
            (des?'<div class="mc-des">'+escH(des)+'</div>':'')+
            '<div class="mc-gid">'+(r.REP_NO?'R'+r.REP_NO:'B'+r.BLOCK_NO)+' · #'+r.PLOT_NO+'</div>'+
@@ -2152,8 +2164,8 @@ function ensRenderBlk(loc){
       }
       h+='</tr>';
     }
-    h+='</tbody></table></div><div style="font-size:.7rem;color:#64748b;margin-top:8px">Vista física en serpentina ('+L.P+' plots por faja × '+L.fajas+' fajas): faja impar →, faja par ←. '+
-       'Cada celda: ENTRY_NO, rep (o bloque) y PLOT_NO. Es solo para revisar; BMS dibuja su propio mapa con el diseño.</div>';
+    h+='</tbody><tfoot>'+ruler+'</tfoot></table></div><div style="font-size:.7rem;color:#64748b;margin-top:8px">Vista física en serpentina ('+L.P+' plots de '+S+' surcos por faja × '+L.fajas+' fajas): faja impar →, faja par ←. '+
+       'Cada celda: ENTRY_NO, designación, rep (o bloque) y PLOT_NO. Es solo para revisar; BMS dibuja su propio mapa con el diseño.</div>';
   } else {
     var groups={}, order=[];
     rows.forEach(function(r){
