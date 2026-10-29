@@ -458,8 +458,9 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
         <small>Nesting (materiales juntos) se respeta en bloques incompletos y en bloques completos: el grupo queda junto dentro del mismo bloque.</small>
       </div>
       <div id="ensPTNote" class="ens-hint" style="display:none;margin-top:0;margin-bottom:10px">
-        <b>Parent Testing (nesting P.T.):</b> Rep 1 = primero todos los <b>híbridos</b> y luego las <b>líneas</b>, cada grupo en el orden de la lista.
-        Rep 2 = serpentina: primero <b>líneas</b> y luego <b>híbridos</b>, cada grupo al azar (distinto a la rep 1). Rep 3 vuelve a híbridos → líneas al azar, y así alternando.
+        <b>Parent Testing (nesting P.T.):</b> en <b>cada rep</b> van primero todos los <b>híbridos</b> al azar y luego todas las <b>líneas</b> al azar (orden distinto en cada rep y localidad).
+        Los fillers de relleno se intercalan al azar entre los híbridos. BLOCK_NO = número de faja dentro de la rep.
+        Con la serpentina, en campo las fajas se ven alternadas: híbrido–línea, línea–híbrido, híbrido–línea…
         Marca las líneas con <b>L</b> en la lista de entradas.
       </div>
       <div id="ensBlockWrap" style="display:none">
@@ -1941,11 +1942,13 @@ function ensShuffleDiff(a,rnd){
   for(var t=0;t<50;t++){ s=shuffle(a.slice(),rnd); if(s.join(',')!==a.join(',')) break; }
   return s;
 }
-// Parent Testing: rep 1 híbridos→líneas en orden; reps pares líneas→híbridos al azar; impares híbridos→líneas al azar
-function ensRepPT(r,H,L,rnd){
-  if(r===1) return H.concat(L);
-  var h=ensShuffleDiff(H,rnd), l=ensShuffleDiff(L,rnd);
-  return (r%2===0)?l.concat(h):h.concat(l);
+// Parent Testing (como PT mayo 2026): en CADA rep, primero los híbridos al azar y luego las líneas al azar.
+// Los fillers de relleno (nF) se intercalan al azar dentro del grupo de híbridos.
+// La alternancia híbrido–línea / línea–híbrido que se ve por faja la produce la serpentina.
+function ensRepPT(H,L,nF,rnd){
+  var h=ensShuffleDiff(H,rnd).map(function(e){return {entry:e};}), l=ensShuffleDiff(L,rnd).map(function(e){return {entry:e};});
+  for(var i=0;i<nF;i++) h.splice(Math.floor(rnd()*(h.length+1)),0,{fill:true});
+  return h.concat(l);
 }
 /* Bloques incompletos resolubles (tipo alfa-látice):
    · s = ceil(N/k) bloques por rep, de tamaños lo más parecidos posible (máximo k).
@@ -2077,7 +2080,13 @@ function ensGenerar(){
       } else if(d==='LIST'){
         ensEntries.forEach(function(e){ rep.push({rep:r,block:0,entry:e.entry}); });
       } else if(d==='PT'){
-        ensRepPT(r,H,Ln,rnd).forEach(function(e){ rep.push({rep:r,block:0,entry:e}); });
+        // fillers de esta rep: con "rep en faja nueva" los que completan su última faja; si no, el sobrante de la localidad repartido entre reps
+        var nF=0;
+        if(fill){
+          if(rf) nF=(P-(offset+N)%P)%P;
+          else { var ext=Math.max(0,(cap||0)-reps*N); nF=Math.floor(ext/reps)+((r-1)<(ext%reps)?1:0); }
+        }
+        ensRepPT(H,Ln,nF,rnd).forEach(function(e){ rep.push(e.fill?{rep:r,block:0,entry:fill.entry,fill:true}:{rep:r,block:0,entry:e.entry}); });
       } else if(d==='RIBD'){
         var blocks=ensRepIncompleto(units,N,k,conc,rnd,r===1);
         if(!blocks){ showAlert('ensAlertGen','No se pudo acomodar los nests en bloques de este tamaño (loc '+loc+', rep '+r+'). Sube el Block Size.','err'); return; }
@@ -2098,12 +2107,21 @@ function ensGenerar(){
     var target=cap||items.length, li2=items[items.length-1];
     while(items.length<target) items.push({rep:li2.rep,block:li2.block,entry:fill.entry,fill:true});
 
+    // Parent Testing: BLOCK_NO = número de faja dentro de la rep (1, 2, …), como en el PT de mayo 2026
+    if(d==='PT'){
+      var firstF={};
+      items.forEach(function(it,i){
+        var fj=P?Math.floor(i/P):0;
+        if(firstF[it.rep]===undefined) firstF[it.rep]=fj;
+        it.block=fj-firstF[it.rep]+1;
+      });
+    }
     var XS=ensParseExcl(l).ok;
     if(XS.length) items.forEach(function(it){ if(!it.fill && XS.indexOf(it.entry)>=0){ it.excl=it.entry; it.entry=fill.entry; it.fill=true; nExcl++; } });
     items.forEach(function(it,i){
       var row={TRIAL_INSTANCE:loc};
       if(d!=='AUG') row.REP_NO=it.rep;
-      if(d==='RIBD'||d==='AUG') row.BLOCK_NO=it.block;
+      if(d==='RIBD'||d==='AUG'||d==='PT') row.BLOCK_NO=it.block;
       row.PLOT_NO=plot++; row.ENTRY_NO=it.entry;
       if(P){ var col=Math.floor(i/P)+1, pos=i%P+1; row.ROW=(col%2===1)?pos:(P+1-pos); row.COL=col; }
       row._fill=!!it.fill; row._excl=it.excl||0; row._nest=it.fill?'':(nestOf[it.entry]||'');
@@ -2116,7 +2134,7 @@ function ensGenerar(){
 
   ensCols=['TRIAL_INSTANCE'];
   if(d!=='AUG') ensCols.push('REP_NO');
-  if(d==='RIBD'||d==='AUG') ensCols.push('BLOCK_NO');
+  if(d==='RIBD'||d==='AUG'||d==='PT') ensCols.push('BLOCK_NO');
   ensCols.push('PLOT_NO','ENTRY_NO');
   if(wantRC) ensCols.push('ROW','COL');
 
