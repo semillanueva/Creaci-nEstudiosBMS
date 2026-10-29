@@ -550,6 +550,8 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
       <div id="ensAlertGen"></div>
       <button class="btn btn-primary" onclick="ensGenerar()">Generar diseño</button>
       <button class="btn btn-green" id="ensBtnExp" onclick="ensExportar()" disabled style="margin-top:7px">⬇ Exportar ImportList + Diseño</button>
+      <button class="btn btn-green" id="ensBtnMap" onclick="ensExportarMapas()" disabled style="margin-top:7px">⬇ Descargar mapas de campo</button>
+      <small style="display:block;font-size:.66rem;color:#94a3b8;margin-top:4px">Un Excel con una hoja por localidad (vista física en serpentina), para comparar contra los mapas que dibuja BMS.</small>
     </div>
 
     <div class="panel" id="ensSummaryPanel" style="display:none">
@@ -1664,7 +1666,7 @@ function ensIsPT(){ return gv('ensTipo')==='PT'; }
 function ensDesign(){ return ensIsPT()?'PT':gv('ensDiseno'); }
 function ensIsC(e){ return e.type==='C'; }
 function ensStale(){
-  if(ensData.length){ ensData=[]; ge('ensBtnExp').disabled=true;
+  if(ensData.length){ ensData=[]; ge('ensBtnExp').disabled=true; ge('ensBtnMap').disabled=true;
     showAlert('ensAlertGen','Cambiaste parámetros: vuelve a generar el diseño.','warn'); }
 }
 function escH(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
@@ -1833,7 +1835,7 @@ function ensLoadFile(input){
       });
       if(!out.length){showAlert('ensAlertFile','El archivo no tiene filas con GID numérico.','err');return;}
       out.forEach(function(e,i){e.entry=i+1;});
-      ensEntries=out; ensData=[]; ge('ensBtnExp').disabled=true;
+      ensEntries=out; ensData=[]; ge('ensBtnExp').disabled=true; ge('ensBtnMap').disabled=true;
       var msg='&#10003; '+out.length+' entradas ('+(out.length-nC-nL)+' híbridos T · '+nC+' testigos C'+(nL?' · '+nL+' líneas':'')+')'+
         (nN?' · '+nN+' con nest':'')+
         '<br><small style="opacity:.8">Columna GID: "'+gk+'"'+(dk?' · Designación: "'+dk+'"':' · sin designación')+
@@ -2140,7 +2142,7 @@ function ensGenerar(){
 
   ensData=rows;
   ensMeta={d:d,N:N,nLoc:ensLocs.length,seed:seed,totFill:totFill,fill:fill,layout:layout};
-  ge('ensBtnExp').disabled=false;
+  ge('ensBtnExp').disabled=false; ge('ensBtnMap').disabled=false;
   var dName=d==='PT'?'Parent Testing (nesting híbridos/líneas)':ge('ensDiseno').options[ge('ensDiseno').selectedIndex].text;
   var msg='&#10003; '+dName+': '+rows.length+' plots en '+ensLocs.length+' localidad'+(ensLocs.length>1?'es':'')+
     (totFill?' (incluye '+totFill+' filler'+(totFill>1?'s':'')+(nExcl?', '+nExcl+' por falta de semilla':'')+')':'')+'.'+
@@ -2288,6 +2290,100 @@ function ensExportar(){
   ]);
   showAlert('ensAlertGen','&#10003; Exportados 2 archivos: ImportList ('+ensAllEntries().length+' entradas) y Diseño ('+ensData.length+' filas'+
     (ensMeta.totFill?', '+ensMeta.totFill+' fillers':'')+', semilla '+ensMeta.seed+').','ok');
+}
+
+/* ─────────── Mapas de campo (una hoja por localidad) ─────────── */
+function ensSheetName(i,name,used){
+  var base=(String(i).padStart(2,'0')+'_'+(name||'Loc '+i)).replace(/[\\\/\?\*\[\]:]/g,' ').slice(0,31), n=base, k=2;
+  while(used[n]) { n=base.slice(0,28)+'('+(k++)+')'; }
+  used[n]=1; return n;
+}
+function ensExportarMapas(){
+  if(!ensData.length) return;
+  var nombre=gv('ensNombre').trim()||'ENSAYO';
+  var info={}; ensAllEntries().forEach(function(e){ info[e.entry]=e; });
+  var meta={}; ensEntries.forEach(function(e){ meta[e.entry]=e; });
+  var C={r1:['FFE0E7FF','FF3730A3'],r2:['FFDCFCE7','FF166534'],chk:['FFFEF3C7','FF92400E'],line:['FFEDE9FE','FF5B21B6'],fill:['FFE2E8F0','FF64748B']};
+  function kind(r){
+    if(r._fill) return 'fill';
+    var e=meta[r.ENTRY_NO]||{};
+    if(e.type==='C') return 'chk';
+    if(ensMeta.d==='PT' && e.role==='L') return 'line';
+    return ((r.REP_NO||r.BLOCK_NO||1)%2===1)?'r1':'r2';
+  }
+  function bd(){ return {top:{style:'thin',color:{argb:'FF94A3B8'}},left:{style:'thin',color:{argb:'FF94A3B8'}},bottom:{style:'thin',color:{argb:'FF94A3B8'}},right:{style:'thin',color:{argb:'FF94A3B8'}}}; }
+  function head(cell){ cell.font={bold:true,color:{argb:'FFFFFFFF'},size:8}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1E293B'}}; cell.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cell.border=bd(); }
+  var wb=new ExcelJS.Workbook(); wb.creator='Generador de Diseño'; wb.created=new Date();
+  var used={}, sinFaja=[];
+  for(var loc=1;loc<=ensMeta.nLoc;loc++){
+    var L=ensMeta.layout[loc];
+    var rows=ensData.filter(function(r){return r.TRIAL_INSTANCE===loc;});
+    var ws=wb.addWorksheet(ensSheetName(loc,L.name,used));
+    if(!L.P){
+      sinFaja.push(loc);
+      ws.addRow(['Localidad '+loc+(L.name?' — '+L.name:'')+': sin surcos por faja / fajas, no se puede dibujar el mapa.']);
+      continue;
+    }
+    var S=L.S||1, P=L.P, TS=P*S, last=1+TS;
+    ws.mergeCells(1,1,1,last);
+    var t=ws.getCell(1,1); t.value='MAPA DE CAMPO — '+nombre+' · Localidad '+loc+(L.name?' ('+L.name+')':'');
+    t.font={bold:true,color:{argb:'FFFFFFFF'},size:12}; t.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1E293B'}}; t.alignment={vertical:'middle'};
+    ws.getRow(1).height=22;
+    ws.mergeCells(2,1,2,last);
+    var sub=ws.getCell(2,1);
+    sub.value=rows.length+' plots · '+L.fajas+' fajas · '+P+' plots × '+S+' surcos = '+TS+' surcos por faja'+(L.SF&&L.SF>TS?' (faja de '+L.SF+' surcos)':'')+
+      ' · Serpentina: faja impar →, faja par ← · Semilla '+ensMeta.seed;
+    sub.font={size:9,color:{argb:'FF475569'}};
+    // encabezado: plots y regla de surcos
+    var HR=4;
+    ws.getCell(HR,1).value='Faja \\ Plot'; head(ws.getCell(HR,1));
+    ws.getCell(HR+1,1).value='Surcos'; head(ws.getCell(HR+1,1));
+    for(var c=1;c<=P;c++){
+      var c0=2+(c-1)*S; if(S>1) ws.mergeCells(HR,c0,HR,c0+S-1);
+      var hc=ws.getCell(HR,c0); hc.value='Plot '+c+' · s'+((c-1)*S+1)+'–'+(c*S); head(hc);
+      for(var s=0;s<S;s++){ var sc=ws.getCell(HR+1,c0+s); sc.value=(c-1)*S+s+1; head(sc); }
+    }
+    var grid={}; rows.forEach(function(r){ grid[r.COL+'_'+r.ROW]=r; });
+    var rp=HR+1;
+    for(var f=L.fajas;f>=1;f--){
+      rp++;
+      var fl=ws.getCell(rp,1); fl.value='Faja '+f+(f%2===1?' →':' ←');
+      fl.font={bold:true,size:9,color:{argb:'FF1E293B'}}; fl.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF1F5F9'}}; fl.alignment={vertical:'middle'}; fl.border=bd();
+      for(var c2=1;c2<=P;c2++){
+        var c1=2+(c2-1)*S; if(S>1) ws.mergeCells(rp,c1,rp,c1+S-1);
+        var cell=ws.getCell(rp,c1), r=grid[f+'_'+c2];
+        cell.border=bd(); cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+        if(!r){ cell.font={size:8}; continue; }
+        var e=info[r.ENTRY_NO]||{}, k=kind(r);
+        var des=r._fill?((ensMeta.fill&&ensMeta.fill.des)||'FILLER')+(r._excl?' (en lugar de E'+r._excl+')':''):(e.des||'');
+        var lines=['Plot: '+r.PLOT_NO,'Entry: '+r.ENTRY_NO, 'GID: '+(e.gid!==undefined?e.gid:''), des,
+                   (r.REP_NO?'Rep '+r.REP_NO:'')+(r.BLOCK_NO?(r.REP_NO?' · ':'')+'Bloque '+r.BLOCK_NO:'')];
+        cell.value=lines.filter(function(x){return x!=='';}).join('\n');
+        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C[k][0]}};
+        cell.font={size:8,color:{argb:C[k][1]},bold:false};
+      }
+      ws.getRow(rp).height=66;
+    }
+    // regla de surcos al pie
+    rp++; ws.getCell(rp,1).value='Surcos'; head(ws.getCell(rp,1));
+    for(var s2=1;s2<=TS;s2++){ var fc=ws.getCell(rp,1+s2); fc.value=s2; head(fc); }
+    // leyenda
+    rp+=2;
+    var leg=[['r1','Rep impar'],['r2','Rep par'],['chk','Testigo (C)']];
+    if(ensMeta.d==='PT') leg.push(['line','Línea']);
+    leg.push(['fill','Filler']);
+    leg.forEach(function(x,i){ var lc=ws.getCell(rp,2+i*Math.max(1,S)); lc.value=x[1]; lc.fill={type:'pattern',pattern:'solid',fgColor:{argb:C[x[0]][0]}}; lc.font={size:8,bold:true,color:{argb:C[x[0]][1]}}; lc.border=bd(); });
+    ws.getColumn(1).width=12;
+    var cw=Math.max(5,Math.round(15/S));
+    for(var cc=2;cc<=last;cc++) ws.getColumn(cc).width=cw;
+    ws.views=[{state:'frozen',xSplit:1,ySplit:HR+1}];
+    ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.25,right:.25,top:.4,bottom:.4,header:.2,footer:.2}};
+    ws.pageSetup.printTitlesRow=HR+':'+(HR+1);
+  }
+  wb.xlsx.writeBuffer().then(function(buf){ downloadBlob(buf,'03_Mapas_'+nombre+'.xlsx'); })
+    .catch(function(err){ alert('Error al exportar mapas: '+err.message); });
+  showAlert('ensAlertGen','&#10003; Mapas exportados: '+ensMeta.nLoc+' hoja'+(ensMeta.nLoc>1?'s':'')+' (una por localidad).'+
+    (sinFaja.length?'<br><small>Sin mapa en loc '+sinFaja.join(', ')+': faltan surcos por faja y fajas (paso 3).</small>':''),sinFaja.length?'warn':'ok');
 }
 
 ensNewSeed(); ensResizeLocs(); ensOnParams();
