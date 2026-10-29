@@ -18,7 +18,7 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
 .modebtn:hover{color:#fff;background:rgba(255,255,255,.06)}
 .modebtn.active{color:#fff;border-bottom-color:#a5b4fc;background:rgba(255,255,255,.10)}
 .main{max-width:1800px;margin:0 auto;padding:20px 18px;display:grid;grid-template-columns:380px 1fr;gap:18px}
-#mainEns{grid-template-columns:480px minmax(0,1fr);align-items:start}
+#mainEns{grid-template-columns:530px minmax(0,1fr);align-items:start}
 #mainEns .preview-wrap,#mainEns .preview-wrap>.panel{min-width:0}
 #mainEns .preview-wrap{position:sticky;top:10px}
 @media(max-width:800px){#mainEns{grid-template-columns:1fr}#mainEns .preview-wrap{position:static}}
@@ -499,6 +499,7 @@ header p{font-size:.76rem;color:#c7d2fe;margin-top:2px}
         <button onclick="ensApplyAll()">Aplicar</button>
       </div>
       <div id="ensLocTable" style="margin-top:8px"></div>
+      <div class="ens-hint" style="margin-top:6px"><b>Sin semilla:</b> si a una localidad no le alcanza un material, escribe su ENTRY_NO o GID (ej. <b>26</b> o <b>26, 27</b>). En esa localidad se reemplaza por filler en la misma posición que le tocó en el sorteo; las demás localidades no cambian.</div>
       <label class="chk-line"><input type="checkbox" id="ensRepFaja" onchange="ensUpdateLocCalc();ensStale()"/> Cada repetición empieza en faja nueva (el final de la faja se completa con filler)</label>
       <div id="ensInfo" class="info-badge"></div>
     </div>
@@ -1682,8 +1683,8 @@ function ensResizeLocs(){
   var n=Math.max(1,Math.min(200,parseInt(gv('ensLoc'))||1)), d=ENS_DEF[gv('ensTipo')];
   while(ensLocs.length<n){
     var last=ensLocs[ensLocs.length-1];
-    ensLocs.push(last?{name:'',reps:last.reps,surcos:last.surcos,sf:last.sf,fajas:last.fajas,edited:last.edited}
-                     :{name:'',reps:d.reps,surcos:d.surcos,sf:'',fajas:'',edited:false});
+    ensLocs.push(last?{name:'',reps:last.reps,surcos:last.surcos,sf:last.sf,fajas:last.fajas,edited:last.edited,excl:''}
+                     :{name:'',reps:d.reps,surcos:d.surcos,sf:'',fajas:'',edited:false,excl:''});
   }
   ensLocs.length=n;
   ensRenderLocs(); ensStale();
@@ -1691,21 +1692,22 @@ function ensResizeLocs(){
 function ensRenderLocs(){
   var h='<div class="tbl-scroll" style="max-height:330px"><table class="loc-table"><thead><tr>'+
         '<th>Loc</th><th>Nombre</th><th>Reps</th><th>Surc/<br>plot</th><th>Surc/<br>faja</th><th>Fajas</th>'+
-        '<th>Plots/<br>faja</th><th>Nece-<br>sita</th><th>Cabe</th><th>Filler</th></tr></thead><tbody>';
+        '<th>Plots/<br>faja</th><th>Nece-<br>sita</th><th>Cabe</th><th>Filler</th><th title="ENTRY_NO o GID de materiales que no van en esta localidad (no alcanzó semilla). Se reemplazan por filler en su misma posición al azar.">Sin<br>semilla</th></tr></thead><tbody>';
   ensLocs.forEach(function(l,i){
     function inp(f,w,t){
       return '<input type="'+(t||'number')+'" min="1" style="width:'+w+'px" value="'+escH(l[f])+'" oninput="ensSetLoc('+i+',\''+f+'\',this.value)"/>';
     }
     h+='<tr><td><b>'+(i+1)+'</b></td><td>'+inp('name',74,'text')+'</td><td>'+inp('reps',36)+'</td><td>'+inp('surcos',36)+
        '</td><td>'+inp('sf',44)+'</td><td>'+inp('fajas',38)+'</td>'+
-       '<td id="ensLP'+i+'">—</td><td id="ensLN'+i+'">—</td><td id="ensLC'+i+'">—</td><td id="ensLF'+i+'">—</td></tr>';
+       '<td id="ensLP'+i+'">—</td><td id="ensLN'+i+'">—</td><td id="ensLC'+i+'">—</td><td id="ensLF'+i+'">—</td>'+
+       '<td><input type="text" id="ensLX'+i+'" placeholder="ej. 26" style="width:72px" value="'+escH(l.excl||'')+'" oninput="ensSetLoc('+i+',\'excl\',this.value)"/></td></tr>';
   });
   ge('ensLocTable').innerHTML=h+'</tbody></table></div>';
   ensUpdateLocCalc();
 }
 function ensSetLoc(i,f,v){
   var l=ensLocs[i];
-  l[f]=(f==='name')?v:(v===''?'':parseInt(v));
+  l[f]=(f==='name'||f==='excl')?v:(v===''?'':parseInt(v));
   if(f==='reps'||f==='surcos') l.edited=true;
   ensUpdateLocCalc(); ensStale();
 }
@@ -1719,6 +1721,18 @@ function ensApplyAll(){
   });
   ensRenderLocs(); ensStale();
 }
+// Materiales sin semilla en una localidad: acepta ENTRY_NO o GID, separados por coma o espacio
+function ensParseExcl(l){
+  var ok=[], bad=[], toks=String(l.excl||'').split(/[\s,;]+/).filter(Boolean);
+  toks.forEach(function(t){
+    var n=parseInt(t,10);
+    if(isNaN(n)||String(n)!==t.replace(/^0+(?=\d)/,'')){ bad.push(t); return; }
+    var e=ensEntries.find(function(x){return x.entry===n;})||ensEntries.find(function(x){return x.gid===n;});
+    if(!e) bad.push(t); else if(ok.indexOf(e.entry)<0) ok.push(e.entry);
+  });
+  return {ok:ok,bad:bad};
+}
+function ensExclReps(l){ return ensDesign()==='AUG'?1:(+l.reps||0); }
 function ensP(l){ var s=+l.surcos, sf=+l.sf; return (s>0&&sf>0)?Math.floor(sf/s):0; }
 function ensCap(l){ var P=ensP(l), f=+l.fajas; return (P&&f>0)?P*f:0; }
 function ensRepSizes(l){
@@ -1743,10 +1757,11 @@ function ensUpdateLocCalc(){
     var f=ge('ensLF'+i);
     if(!N){ f.textContent='—'; return; }
     if(cap && need>cap){ f.innerHTML='<span style="color:#991b1b;font-weight:800">faltan '+(need-cap)+'</span>'; short.push(i+1); return; }
-    var fill=(cap||need)-real;
+    var X=ensParseExcl(l), xf=X.ok.length*ensExclReps(l), fill=(cap||need)-real+xf;
     totPlots+=(cap||need); totFill+=fill;
     if(fill>0) anyFill=true;
-    f.innerHTML=fill>0?'<b style="color:#334155">'+fill+'</b>':'0';
+    f.innerHTML=fill>0?'<b style="color:#334155">'+fill+'</b>'+(xf?'<br><span style="font-size:.6rem;color:#92400e">'+xf+' x semilla</span>':''):'0';
+    var xi=ge('ensLX'+i); if(xi){ xi.style.borderColor=X.bad.length?'#dc2626':(X.ok.length?'#d97706':''); xi.title=X.bad.length?'No se reconoce: '+X.bad.join(', '):(X.ok.length?'Se reemplazan por filler: ENTRY_NO '+X.ok.join(', '):''); }
   });
   var info='';
   if(!N) info='Carga el listado para ver cuántos plots necesita cada localidad.';
@@ -2015,6 +2030,10 @@ function ensGenerar(){
   }
   ensLocs.forEach(function(l,i){
     var tag='Loc '+(i+1)+(l.name?' ('+escH(l.name)+')':'')+': ';
+    var X=ensParseExcl(l);
+    if(X.bad.length) errs.push(tag+'en "Sin semilla" no se reconoce '+X.bad.join(', ')+' (usa ENTRY_NO o GID de la lista).');
+    if(X.ok.length && !fill) errs.push(tag+'hay materiales sin semilla: indica el GID del filler (paso 4) para reemplazarlos.');
+    if(X.ok.length && fill && X.ok.indexOf(fill.entry)>=0) errs.push(tag+'el filler no puede estar en "Sin semilla".');
     if(d!=='AUG' && !(+l.reps>=1)) errs.push(tag+'faltan las repeticiones.');
     if(!(+l.surcos>=1)) errs.push(tag+'faltan los surcos por plot.');
     var P=ensP(l), cap=ensCap(l);
@@ -2038,7 +2057,7 @@ function ensGenerar(){
   }
   var units=ensUnits();
 
-  var rows=[], plot=pStart, layout={}, totFill=0, split=[];
+  var rows=[], plot=pStart, layout={}, totFill=0, split=[], nExcl=0;
   ensLocs.forEach(function(l,li){
     var loc=li+1; if(!cont) plot=pStart;
     var P=ensP(l), cap=ensCap(l), rf=repFaja&&P;
@@ -2079,13 +2098,15 @@ function ensGenerar(){
     var target=cap||items.length, li2=items[items.length-1];
     while(items.length<target) items.push({rep:li2.rep,block:li2.block,entry:fill.entry,fill:true});
 
+    var XS=ensParseExcl(l).ok;
+    if(XS.length) items.forEach(function(it){ if(!it.fill && XS.indexOf(it.entry)>=0){ it.excl=it.entry; it.entry=fill.entry; it.fill=true; nExcl++; } });
     items.forEach(function(it,i){
       var row={TRIAL_INSTANCE:loc};
       if(d!=='AUG') row.REP_NO=it.rep;
       if(d==='RIBD'||d==='AUG') row.BLOCK_NO=it.block;
       row.PLOT_NO=plot++; row.ENTRY_NO=it.entry;
       if(P){ var col=Math.floor(i/P)+1, pos=i%P+1; row.ROW=(col%2===1)?pos:(P+1-pos); row.COL=col; }
-      row._fill=!!it.fill; row._nest=it.fill?'':(nestOf[it.entry]||'');
+      row._fill=!!it.fill; row._excl=it.excl||0; row._nest=it.fill?'':(nestOf[it.entry]||'');
       if(it.fill) totFill++;
       rows.push(row);
     });
@@ -2104,7 +2125,7 @@ function ensGenerar(){
   ge('ensBtnExp').disabled=false;
   var dName=d==='PT'?'Parent Testing (nesting híbridos/líneas)':ge('ensDiseno').options[ge('ensDiseno').selectedIndex].text;
   var msg='&#10003; '+dName+': '+rows.length+' plots en '+ensLocs.length+' localidad'+(ensLocs.length>1?'es':'')+
-    (totFill?' (incluye '+totFill+' filler'+(totFill>1?'s':'')+')':'')+'.'+
+    (totFill?' (incluye '+totFill+' filler'+(totFill>1?'s':'')+(nExcl?', '+nExcl+' por falta de semilla':'')+')':'')+'.'+
     '<br><small>'+(d==='LIST'?'Sin aleatorizar: mismo orden de la lista en cada rep.':'Semilla <b>'+seed+'</b> · cada localidad con su propia aleatorización.')+'</small>';
   if(warns.length) msg+='<br><small><b>Ojo:</b> '+warns.join('<br>')+'</small>';
   showAlert('ensAlertGen',msg,warns.length?'warn':'ok');
@@ -2155,7 +2176,7 @@ function ensRenderBlk(loc){
       for(var c2=1;c2<=L.P;c2++){
         var r=grid[f+'_'+c2];
         if(!r){ h+='<td class="cell-e" colspan="'+S+'"></td>'; continue; }
-        var des=r._fill?((ensMeta.fill&&ensMeta.fill.des)||'Filler'):((info[r.ENTRY_NO]||{}).des||'');
+        var des=r._fill?((ensMeta.fill&&ensMeta.fill.des)||'Filler')+(r._excl?' (en lugar de E'+r._excl+')':''):((info[r.ENTRY_NO]||{}).des||'');
         h+='<td colspan="'+S+'" class="plot-cell ev-cell '+cls(r)+'"'+nestSt(r)+' title="'+escH(des)+' · PLOT_NO '+r.PLOT_NO+' · surcos '+((c2-1)*S+1)+'–'+(c2*S)+(r._nest?' · nest '+r._nest:'')+'">'+
            '<div class="mc-plot">'+(r._fill?'FILL':'E'+r.ENTRY_NO)+'</div>'+
            (des?'<div class="mc-des">'+escH(des)+'</div>':'')+
@@ -2194,7 +2215,7 @@ function ensRenderTabla(){
   ensCols.forEach(function(c){h+='<th>'+c+'</th>';}); h+='<th>Designación</th></tr></thead><tbody>';
   var parts=[];
   ensData.forEach(function(r){ parts.push('<tr'+(r._fill?' style="color:#94a3b8"':'')+'>'+ensCols.map(function(c){return '<td>'+r[c]+'</td>';}).join('')+
-    '<td style="text-align:left;color:#64748b">'+escH(des[r.ENTRY_NO]||'')+'</td></tr>'); });
+    '<td style="text-align:left;color:#64748b">'+escH(des[r.ENTRY_NO]||'')+(r._excl?' — filler en lugar de E'+r._excl:'')+'</td></tr>'); });
   h+=parts.join('')+'</tbody></table></div>';
   ge('ensTabTabla').innerHTML=h+'<div style="font-size:.7rem;color:#64748b;margin-top:6px">La columna "Designación" es solo de pantalla; no se exporta en el Diseño.</div>';
 }
