@@ -613,12 +613,20 @@ function readWB(file,cb){
 // Busca la fila real de encabezados (la que tiene una celda "GID"), sin importar en qué
 // fila esté. Esto soporta tanto el formato simple (encabezado en la fila 1) como formatos
 // con metadatos arriba de la tabla (ej. "Listado Oficial" con título, ciclo, localidades, etc.).
+// Columna GID a usar. Prioridad: "GID Diseño" (o "GID Siembra") → si no hay, el primer "GID" de la izquierda.
+function normHdr(v){ return String(v==null?'':v).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[()\[\]_\-]/g,' ').replace(/\s+/g,' ').trim(); }
+function gidColIndex(row){
+  var h=row.map(normHdr);
+  var pref=h.findIndex(function(x){return x==='gid diseno'||x==='gid siembra';});
+  if(pref>=0) return pref;
+  return h.findIndex(function(x){return x==='gid';});
+}
 function findSheetWithGID(wb){
   for(var i=0;i<wb.SheetNames.length;i++){
     var rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]],{header:1,defval:''});
     for(var r=0;r<rows.length;r++){
       var row=rows[r];
-      var gidIdx=row.findIndex(function(c){return String(c).trim().toLowerCase()==='gid';});
+      var gidIdx=gidColIndex(row);
       if(gidIdx<0) continue;
       var headers=row.map(function(c){return String(c).trim();});
       var data=[];
@@ -628,13 +636,37 @@ function findSheetWithGID(wb){
         if(gidVal===''||gidVal==null) continue;   // salta filas de plantilla sin GID (aún vacías)
         if(isNaN(parseFloat(gidVal))) continue;    // salta filas de leyenda/ejemplo con texto en la columna GID
         var obj={};
-        headers.forEach(function(h,ci){ if(h) obj[h]=raw[ci]!==undefined?raw[ci]:''; });
+        // Si un encabezado se repite (ej. varias columnas "GID"), se usa la PRIMERA de la izquierda
+        headers.forEach(function(h,ci){ if(h && !(h in obj)) obj[h]=raw[ci]!==undefined?raw[ci]:''; });
         data.push(obj);
       }
-      if(data.length) return data;
+      if(data.length){ data.meta=rows.slice(0,r); data.gidKey=headers[gidIdx]; return data; }   // filas de arriba (FECHA, NOMBRE, TERRENO…)
     }
   }
   return null;
+}
+// Lee los datos del encabezado del plan BCR (arriba de la tabla):
+//   NOMBRE · 10 FAJAS · 54 SURCOS · LOCALIDAD · DISPOSICIÓN "4 HEMBRAS:2 MACHOS"
+function readBCRMeta(meta){
+  var out={};
+  if(!meta) return out;
+  function norm(v){ return String(v==null?'':v).trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+  meta.forEach(function(row){
+    row.forEach(function(c,ci){
+      var t=norm(c); if(!t) return;
+      function nextVal(){ for(var k=ci+1;k<row.length;k++){ if(String(row[k]).trim()!=='') return row[k]; } return ''; }
+      function prevNum(){ for(var k=ci-1;k>=0;k--){ var v=row[k]; if(String(v).trim()!=='') return isNaN(+v)?null:+v; } return null; }
+      if(t==='NOMBRE'||t==='NOMBRE DEL VIVERO') out.nombre=String(nextVal()).trim();
+      else if(t==='LOCALIDAD'||t==='UBICACION') out.loc=String(nextVal()).trim();
+      else if(t==='FAJAS'){ var f=prevNum(); if(f) out.fajas=f; }
+      else if(t==='SURCOS'){ var s=prevNum(); if(s) out.surcos=s; }
+      else if(t.indexOf('DISPOSICION')===0||t.indexOf('PATRON')===0){
+        var v=norm(nextVal()), mF=v.match(/(\d+)\s*(H|F)/), mM=v.match(/(\d+)\s*M/);
+        if(mF&&mM){ out.nF=+mF[1]; out.nM=+mM[1]; }
+      }
+    });
+  });
+  return out;
 }
 function keyOf(row,names){
   var keys=Object.keys(row);
@@ -1097,7 +1129,7 @@ function loadGermFile(input){
     try{
       var data=findSheetWithGID(wb);
       if(!data){showAlert('alertGerm','No se encontró una hoja con columna GID.','err');return;}
-      var gidKey=keyOf(data[0],['gid']);
+      var gidKey=data.gidKey||keyOf(data[0],['gid']);
       var rolKey=roleKeyOf(data[0]);
       if(!gidKey){showAlert('alertGerm','No se encontró columna GID.','err');return;}
 
@@ -1107,6 +1139,20 @@ function loadGermFile(input){
         var mF=pv.match(/(\d+)\s*f/), mM=pv.match(/(\d+)\s*m/);
         if(mF&&mM){ge('pF').value=+mF[1];ge('pM').value=+mM[1];}
       }
+
+      // Si hay columna "Orden", se respeta ese orden de siembra
+      var ordKey=keyOf(data[0],['orden','order','no.','#']);
+      if(ordKey && data.every(function(r){return r[ordKey]!==''&&!isNaN(+r[ordKey]);})){
+        data=data.slice().sort(function(a,b){return (+a[ordKey])-(+b[ordKey]);});
+      }
+
+      // Datos del encabezado del plan → llenan los parámetros solos
+      var meta=readBCRMeta(data.meta), metaTxt=[];
+      if(meta.nombre){ ge('pNombre').value=meta.nombre; metaTxt.push('código <b>'+escH(meta.nombre)+'</b>'); }
+      if(meta.loc){ ge('pFieldLoc').value=meta.loc; metaTxt.push('localidad <b>'+escH(meta.loc)+'</b>'); }
+      if(meta.surcos){ ge('pRowsPerFaja').value=meta.surcos; metaTxt.push('<b>'+meta.surcos+'</b> surcos/faja'); }
+      if(meta.fajas){ ge('pFajasManual').value=meta.fajas; metaTxt.push('<b>'+meta.fajas+'</b> fajas'); }
+      if(meta.nF&&meta.nM){ ge('pF').value=meta.nF; ge('pM').value=meta.nM; metaTxt.push('minibloque <b>'+meta.nF+'F+'+meta.nM+'M</b>'); }
 
       seq=[];
       data.forEach(function(r){
@@ -1123,7 +1169,8 @@ function loadGermFile(input){
       var nF=uniqueEntries.filter(function(e){return e.role==='Fem';}).length;
       var nM=uniqueEntries.filter(function(e){return e.role==='Male';}).length;
       showAlert('alertGerm','&#10003; '+seq.length+' filas · '+uniqueEntries.length+' GIDs únicos ('+nF+' ♀ / '+nM+' ♂)<br>'+
-        '<small style="opacity:.8">GID: "'+gidKey+'"'+(rolKey?' · rol: "'+rolKey+'"':' · sin rol → todo Fem')+'</small>','ok');
+        '<small style="opacity:.8">GID: "'+gidKey+'"'+(rolKey?' · rol: "'+rolKey+'"':' · sin rol → todo Fem')+(ordKey?' · orden: "'+ordKey.trim()+'"':'')+'</small>'+
+        (metaTxt.length?'<br><small>Tomado del encabezado del archivo: '+metaTxt.join(' · ')+'. Revísalo en el paso 3.</small>':''),'ok');
       updateInfoMB();
     }catch(err){showAlert('alertGerm','Error: '+err.message,'err');}
   });
@@ -1811,7 +1858,7 @@ function ensLoadFile(input){
       }
       if(!data) data=findSheetWithGID(wb);
       if(!data||!data.length){showAlert('ensAlertFile','No se encontró una hoja con columna GID.','err');return;}
-      var gk=gidKeyOf(data[0]);
+      var gk=data.gidKey||gidKeyOf(data[0]);
       var dk=keyOf(data[0],['designation','designación','designacion','nombre','material','genotipo','variedad','hibrido','híbrido','pedigree','cruza','cross']);
       var tk=keyOf(data[0],['entry_type','tipo de entrada','tipo entrada','tipo','type']);
       var ck=keyOf(data[0],['testigo','check','es testigo','control']);
