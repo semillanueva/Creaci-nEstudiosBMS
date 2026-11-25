@@ -1015,18 +1015,15 @@ function addMapaSheet(wb,grid,opts){
       var r=grid[f+'_'+c], cell=put(rowPtr,c+1,'');
       cell.border=thinBorder(); cell.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cell.font={size:8};
       if(r){
-        var isMale=(!opts.isSelf && r.PLOT_ROLE==='Male');
-        var fill=opts.isSelf?STYLE.selfFill:(isMale?STYLE.maleFill:STYLE.femFill);
-        var txt =opts.isSelf?STYLE.selfTxt :(isMale?STYLE.maleTxt :STYLE.femTxt);
-        var lines=['Plot:'+r.PLOT_CODE,'GID:'+r.GID];
-        if(!opts.isSelf) lines.push('Role:'+r.PLOT_ROLE);
-        lines.push('Entry:'+r.ENTRY_NO);
+        // Celdas de plots en blanco (sin relleno), texto oscuro; solo se colorean los encabezados
+        var lines=['Plot_Code: '+r.PLOT_CODE,'GID: '+r.GID,'Plot_No: '+r.PLOT_NO];
+        if(!opts.isSelf) lines.push('Rol: '+r.PLOT_ROLE);
+        lines.push('Entry: '+r.ENTRY_NO);
         cell.value=lines.join('\n');
-        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:fill}};
-        cell.font={size:8,color:{argb:txt}};
+        cell.font={size:8,color:{argb:'FF1E293B'}};
       }
     }
-    ws.getRow(rowPtr).height=opts.isSelf?46:56;
+    ws.getRow(rowPtr).height=opts.isSelf?56:68;
   }
 
   // Anchos de columna
