@@ -984,97 +984,91 @@ function addGermplasmSheet(wb,rows){
 // Hoja "Mapa de Campo": encabezado tipo BMS + rejilla coloreada + listo para imprimir
 // opts: {nombre, loc, block, nEntries, nPlots, R, nFajas, isSelf}
 function addMapaSheet(wb,grid,opts){
-  var ws=wb.addWorksheet('Mapa de Campo');
+  // Mismo formato que la hoja "FIELD MAP" que exporta BMS: encabezado en blanco (sin colores),
+  // etiquetas en negrita, valores repartidos a lo ancho, recuadros de FECHA DE SIEMBRA y rejilla con encabezado gris.
+  var ws=wb.addWorksheet('FIELD MAP');
   var R=opts.R, maxCol=R, nFajas=opts.nFajas;
-  var totCols=maxCol+1;                       // col A (faja) + surcos
-  var lastL=colLetter(totCols);
-
+  var GRAY='FF808080', BIG=22;
   function put(r,c,v){var cell=ws.getCell(r,c);cell.value=v;return cell;}
-  function styleLabel(cell){cell.font={bold:true,color:{argb:STYLE.labelTxt},size:9};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.labelFill}};cell.alignment={vertical:'middle',wrapText:true};cell.border=thinBorder();}
-  function styleVal(cell){cell.font={size:9};cell.alignment={vertical:'middle',horizontal:'left',wrapText:true};cell.border=thinBorder();}
+  function lbl(r,c,v){var cell=put(r,c,v);cell.font={bold:true,size:BIG};return cell;}
+  function val(r,c,v,center){var cell=put(r,c,v);cell.font={size:BIG};if(center)cell.alignment={horizontal:'center'};return cell;}
+  function medBorder(){var b={style:'medium'};return {top:b,left:b,bottom:b,right:b};}
+  function thin(){var b={style:'thin'};return {top:b,left:b,bottom:b,right:b};}
 
-  // ── Encabezado tipo BMS ──
-  ws.mergeCells('A1:'+lastL+'1');
-  var t=ws.getCell('A1'); t.value='MAPA DE CAMPO — '+opts.nombre;
-  t.font={bold:true,color:{argb:STYLE.headerTxt},size:13};
-  t.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};
-  t.alignment={horizontal:'left',vertical:'middle'};
-  ws.getRow(1).height=22;
+  // ── Encabezado (posiciones iguales al FIELD MAP de BMS) ──
+  lbl(1,1,'SUMMARY OF STUDY, FIELD AND PLANTING DETAILS');
+  put(3,1,'Selected Studies:').font={size:BIG};
+  lbl(4,1,'Order'); lbl(4,3,'Study'); lbl(4,7,'Environment'); lbl(4,10,'# of Entries'); lbl(4,13,'# of Reps'); lbl(4,16,'Plots Needed');
+  val(5,1,1,true); val(5,3,opts.nombre,true); val(5,7,1,true); val(5,10,String(opts.nEntries),true); val(5,13,'1',true); val(5,16,String(opts.nPlots),true);
+  lbl(6,1,'Total Number of Plots'); val(6,4,String(opts.nPlots),true);
 
-  ws.mergeCells('A3:C3'); var ss=ws.getCell('A3'); ss.value='Selected Studies:'; ss.font={bold:true,size:9,color:{argb:STYLE.labelTxt}};
-
-  var h4=['Order','Study','Environment','# of Entries','# of Reps','Plots Needed'];
-  h4.forEach(function(v,i){var cell=put(4,i+1,v);cell.font={bold:true,color:{argb:STYLE.headerTxt},size:9};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=thinBorder();});
-  var v5=[1,opts.nombre,1,opts.nEntries,1,opts.nPlots];
-  v5.forEach(function(v,i){var cell=put(5,i+1,v);styleVal(cell);cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};});
-
-  styleLabel(put(6,1,'Total Number of Plots')); ws.mergeCells('B6:C6'); var tp=ws.getCell('B6'); tp.value=opts.nPlots; styleVal(tp); tp.alignment={horizontal:'center',vertical:'middle'};
-
-  // Bloque de detalles (3 pares etiqueta/valor por fila)
-  styleLabel(put(8,1,'FIELD AND BLOCK DETAILS')); styleLabel(put(8,3,'ROW, FAJA AND PLOT DETAILS')); styleLabel(put(8,5,'PLANTING DETAILS'));
-  var rows=[
-    ['Field Location',opts.loc||'', 'Block Capacity',R+' Surcos, '+nFajas+' Fajas', 'Starting Coordinates','Column 1, Faja 1'],
-    ['Field Name','',               'Surcos per Plot','1',                          'Plot Layout Order','Serpentine'],
-    ['Block Name',opts.block||'',   'Columns',String(R),                            'Row Capacity of Planting Machine','1']
+  lbl(8,1,'FIELD AND BLOCK DETAILS'); lbl(8,8,'ROW, RANGE AND PLOT DETAILS'); lbl(8,14,'PLANTING DETAILS');
+  var det=[
+    ['Field Location',opts.loc||'', 'Block Capacity',R+' Rows, '+nFajas+' Ranges', 'Starting Coordinates','Column 1, Range 1'],
+    ['Field Name','',               'Rows per Plot','1',                          'Plot Layout Order','Serpentine'],
+    ['Block Name',opts.block||'',   'Columns',String(R),                          'Row Capacity of Planting Machine','1']
   ];
-  rows.forEach(function(rr,ri){
-    var rowIdx=9+ri;
-    styleLabel(put(rowIdx,1,rr[0])); styleVal(put(rowIdx,2,rr[1]));
-    styleLabel(put(rowIdx,3,rr[2])); styleVal(put(rowIdx,4,rr[3]));
-    styleLabel(put(rowIdx,5,rr[4])); styleVal(put(rowIdx,6,rr[5]));
-    ws.getRow(rowIdx).height=26;
+  det.forEach(function(d,i){
+    var r=9+i;
+    lbl(r,1,d[0]);  val(r,4,d[1]);
+    lbl(r,8,d[2]);  val(r,10,d[3]);
+    lbl(r,14,d[4]); val(r,19,d[5]);
   });
-  ws.getRow(8).height=24;
+  for(var hr=1;hr<=11;hr++) ws.getRow(hr).height=28.8;
+
+  // Recuadros FECHA DE SIEMBRA (para llenar a mano)
+  [[13,'FFDAF2D0'],[14,'FFFBE2D5']].forEach(function(x){
+    ws.mergeCells(x[0],7,x[0],11);
+    var c=ws.getCell(x[0],7); c.value='FECHA DE SIEMBRA';
+    c.font={bold:true,size:16}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:x[1]}};
+    c.alignment={horizontal:'left',vertical:'middle',wrapText:true}; c.border=medBorder();
+    ws.getRow(x[0]).height=21.6;
+  });
+  ws.getRow(12).height=21.6;
+
+  var fm=put(15,1,'FIELD MAP'); fm.font={bold:true,size:9}; fm.alignment={horizontal:'center',wrapText:true};
 
   // ── Rejilla del mapa ──
-  var HR=13;                                   // fila del encabezado de surcos
-  var hc=put(HR,1,'Faja \\ Surco'); hc.font={bold:true,color:{argb:STYLE.headerTxt},size:9}; hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}}; hc.alignment={horizontal:'center',vertical:'middle',wrapText:true}; hc.border=thinBorder();
-  // Fila de surcos (solo números, como BMS); se repite al pie del mapa
+  var HR=17;
+  function hdr(cell,sz){cell.font={bold:true,size:sz||12};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:GRAY}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=thin();}
+  // Fila de surcos (solo números); se repite al pie del mapa
   function surcoRow(rIdx,label){
-    var lc=put(rIdx,1,label); lc.font={bold:true,color:{argb:STYLE.headerTxt},size:9}; lc.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}}; lc.alignment={horizontal:'center',vertical:'middle',wrapText:true}; lc.border=thinBorder();
-    for(var c=1;c<=maxCol;c++){
-      var cell=put(rIdx,c+1,c);
-      cell.font={bold:true,color:{argb:STYLE.headerTxt},size:8};
-      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};
-      cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
-      cell.border=thinBorder();
-    }
+    hdr(put(rIdx,1,label));
+    for(var c=1;c<=maxCol;c++) hdr(put(rIdx,c+1,c));
+    ws.getRow(rIdx).height=15.6;
   }
-  surcoRow(HR,'Faja \\ Surco');
+  surcoRow(HR,'Surcos');
   var rowPtr=HR;
   for(var f=nFajas;f>=1;f--){
     rowPtr++;
-    var fl=put(rowPtr,1,'Faja '+f+(f%2===1?' →':' ←'));
-    fl.font={bold:true,color:{argb:STYLE.fajaTxt},size:9}; fl.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.fajaFill}};
-    fl.alignment={horizontal:'left',vertical:'middle'}; fl.border=thinBorder();
+    hdr(put(rowPtr,1,'Faja '+f+(f%2===1?' →':' ←')),14);
     for(var c=1;c<=maxCol;c++){
       var r=grid[f+'_'+c], cell=put(rowPtr,c+1,'');
-      cell.border=thinBorder(); cell.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cell.font={size:8};
+      cell.border=medBorder(); cell.alignment={horizontal:'center',vertical:'middle',wrapText:true}; cell.font={size:14};
       if(r){
-        // Celdas de plots en blanco (sin relleno), texto oscuro; solo se colorean los encabezados
+        // Celdas de plots en blanco (sin relleno); solo se colorean los encabezados
         var lines=['Plot_Code: '+r.PLOT_CODE,'GID: '+r.GID,'Plot_No: '+r.PLOT_NO];
         if(!opts.isSelf) lines.push('Rol: '+r.PLOT_ROLE);
         lines.push('Entry: '+r.ENTRY_NO);
         cell.value=lines.join('\n');
-        cell.font={size:8,color:{argb:'FF1E293B'}};
       }
     }
-    ws.getRow(rowPtr).height=opts.isSelf?56:68;
+    ws.getRow(rowPtr).height=127.8;
   }
   surcoRow(rowPtr+1,'Surcos');   // números de surco también al pie
 
-  // Anchos de columna
-  ws.getColumn(1).width=13;
-  for(var c=2;c<=totCols;c++) ws.getColumn(c).width=14;
+  // Anchos de columna (como BMS)
+  ws.getColumn(1).width=11.8;
+  for(var c=2;c<=maxCol+1;c++) ws.getColumn(c).width=15.4;
 
-  // Impresión: horizontal, ajustar al ancho, repetir encabezado y columna de fajas
+  // Impresión: horizontal, ajustar al ancho, repetir la fila de surcos
   ws.pageSetup={
     orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0,
     horizontalCentered:true,
     margins:{left:0.3,right:0.3,top:0.4,bottom:0.4,header:0.2,footer:0.2},
-    printTitlesRow:'1:'+HR, printTitlesColumn:'A:A'
+    printTitlesRow:HR+':'+HR
   };
-  ws.views=[{state:'frozen',xSplit:1,ySplit:HR}];
+  ws.views=[{zoomScale:50}];
   return ws;
 }
 
