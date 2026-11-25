@@ -997,14 +997,18 @@ function addMapaSheet(wb,grid,opts){
   // ── Rejilla del mapa ──
   var HR=13;                                   // fila del encabezado de surcos
   var hc=put(HR,1,'Faja \\ Surco'); hc.font={bold:true,color:{argb:STYLE.headerTxt},size:9}; hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}}; hc.alignment={horizontal:'center',vertical:'middle',wrapText:true}; hc.border=thinBorder();
-  for(var c=1;c<=maxCol;c++){
-    var lbl=opts.isSelf?String(c):(c+(c%2===1?' UP':' DOWN'));
-    var cell=put(HR,c+1,lbl);
-    cell.font={bold:true,color:{argb:STYLE.headerTxt},size:8};
-    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};
-    cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
-    cell.border=thinBorder();
+  // Fila de surcos (solo números, como BMS); se repite al pie del mapa
+  function surcoRow(rIdx,label){
+    var lc=put(rIdx,1,label); lc.font={bold:true,color:{argb:STYLE.headerTxt},size:9}; lc.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}}; lc.alignment={horizontal:'center',vertical:'middle',wrapText:true}; lc.border=thinBorder();
+    for(var c=1;c<=maxCol;c++){
+      var cell=put(rIdx,c+1,c);
+      cell.font={bold:true,color:{argb:STYLE.headerTxt},size:8};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:STYLE.dark}};
+      cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+      cell.border=thinBorder();
+    }
   }
+  surcoRow(HR,'Faja \\ Surco');
   var rowPtr=HR;
   for(var f=nFajas;f>=1;f--){
     rowPtr++;
@@ -1025,6 +1029,7 @@ function addMapaSheet(wb,grid,opts){
     }
     ws.getRow(rowPtr).height=opts.isSelf?56:68;
   }
+  surcoRow(rowPtr+1,'Surcos');   // números de surco también al pie
 
   // Anchos de columna
   ws.getColumn(1).width=13;
